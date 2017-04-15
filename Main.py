@@ -1,5 +1,7 @@
 from flask import Flask
 from flask import request
+from flask import url_for
+from flask import redirect
 import pypyodbc
 
 app = Flask(__name__)
@@ -174,55 +176,53 @@ def contact():
 
 @app.route("/Login", methods=['GET', 'POST'])
 def login():
-    pageContent = commonHeader()
+    print "request.method = %s" % (request.method)
     if request.method == 'POST':
-        
-        pageContent += headBar("Articles")
-        for taskBar in linkList:
-            pageContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
-        pageContent +='''Hello'''
-    else:
-        pageContent += headBar("Articles")
-        for taskBar in linkList:
-            pageContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
-        pageContent +='''</ul> </nav> <p>
-        </p>
-        <form action="/Login">
-        <!--Creates the form for the login boxes-->
-          <div class="container">
-          <!--Creates a container to put the login boxes in-->
-            <label><b>Username</b></label>
-            <!--Labels the username box-->
-            <input type="text" 
-            placeholder="Enter Username" 
-            name="uname" 
-            required>
-            <!--[input type="text"] Sets the data type to text
-            [placeholder="Enter Username"] sets the placeholder text to be "Enter Username" 
-            [name="uname"] names the box "username"
-            [required] makes the data required-->
+        print "Re-directing"
+        return redirect(url_for("main"))
+    print "Display login"
+    pageContent = commonHeader()
+    pageContent += headBar("Articles")
+    for taskBar in linkList:
+        pageContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
+    pageContent +='''</ul> </nav> <p>
+    </p>
+    <form action="/Login" method = POST>
+    <!--Creates the form for the login boxes-->
+      <div class="container">
+      <!--Creates a container to put the login boxes in-->
+        <label><b>Username</b></label>
+        <!--Labels the username box-->
+        <input type="text" 
+        placeholder="Enter Username" 
+        name="uname" 
+        required>
+        <!--[input type="text"] Sets the data type to text
+        [placeholder="Enter Username"] sets the placeholder text to be "Enter Username" 
+        [name="uname"] names the box "username"
+        [required] makes the data required-->
 
-            <label><b>Password</b></label>
-            <!--Labels the password box-->
-            <input type="password" 
-            placeholder="Enter Password" 
-            name="psw" 
-            required>
-            <!--[input type="password"] Sets the data type to password so it will be hidden
-            [placeholder="Enter Password"] sets the placeholder text to be "Enter Password"
-            [name="psw"] names the box "psw"
-            [required] makes the data requires-->
+        <label><b>Password</b></label>
+        <!--Labels the password box-->
+        <input type="password" 
+        placeholder="Enter Password" 
+        name="psw" 
+        required>
+        <!--[input type="password"] Sets the data type to password so it will be hidden
+        [placeholder="Enter Password"] sets the placeholder text to be "Enter Password"
+        [name="psw"] names the box "psw"
+        [required] makes the data requires-->
 
-            <button type="submit">Login</button>
-            <!--Creates the login button-->
-          </div>
-        <p>
-        </p>
-          <div class="container" style="background-color:#">
-            <span class="psw">Don't have an account? <a href="#">Create one here</a></span>
-            <!--Creates a link to the create account page for if a user does not yet have an account-->
-          </div>
-        </form> </body> </html>''' 
+        <button type="submit">Login</button>
+        <!--Creates the login button-->
+      </div>
+    <p>
+    </p>
+      <div class="container" style="background-color:#">
+        <span class="psw">Don't have an account? <a href="#">Create one here</a></span>
+        <!--Creates a link to the create account page for if a user does not yet have an account-->
+      </div>
+    </form> </body> </html>''' 
     return pageContent
 
 if __name__ == "__main__":
