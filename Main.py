@@ -2,7 +2,7 @@ from flask import Flask
 from flask import request
 from flask import url_for
 from flask import redirect
-import pypyodbc
+import mysql.connector
 
 app = Flask(__name__)
 
@@ -36,6 +36,18 @@ def headBar(pageTitle):
     <!--Sets the title of the page-->
     <nav> <ul>''' % (pageTitle)
     return headText
+
+def checkLogin(username, password):
+    connection = mysql.connector.connect(user = "root", password = "Password", database = "UserDetails")
+#    query = ("select username from UserDetails where username = %s and password = %s")
+    query = ("select username from UserDetails")
+    cursor = connection.cursor()
+#    cursor.execute(query,(username, password))
+    cursor.execute(query)
+    for (a) in  cursor:
+        print a
+#    cursor.close()
+#    connection.close()
     
 @app.route("/")
 def main():
@@ -178,6 +190,7 @@ def contact():
 def login():
     print "request.method = %s" % (request.method)
     if request.method == 'POST':
+        checkLogin("","")
         print "Re-directing"
         return redirect(url_for("main"))
     print "Display login"
