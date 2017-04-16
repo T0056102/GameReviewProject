@@ -18,10 +18,6 @@ def commonHeader():
     <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
     <style>
-      body {
-        background-image: url("firewatch-wallpaper-12.jpg");
-        background-repeat: no-repeat;
-    }
     ul { list-style-type: none; padding: 0; margin: 0; background-color: #8E44AD; } li { display: inline-block; } li a { display: block; padding: 10px; color: #FDFEFE; } li a:hover { background-color: #BB8FCE; } </style> 
     <!--Formats the main bar at the top of the screen--> 
     </style>
@@ -44,15 +40,52 @@ def checkLogin(username, password):
     if cursor.rowcount == 1:
         return True
     return False
+
+def secretNumber():
+    returnNumber = ""
+    for i in range(32):
+        returnNumber += str(randint(0,9))
+    return returnNumber
+
+def updateUserCookie(username, secretNumber):
+    connection = mysql.connector.connect(user = "root", password = "Password", database = "UserDetails")
+    query = ("update UserDetails set cookie = %s where username = %s")
+    cursor = connection.cursor()
+    cursor.execute(query,(secretNumber, username))
+    query = ("commit")
+    cursor = connection.cursor()
+    cursor.execute(query)
+
+def getUserBySecret(secretNumber):
+    connection = mysql.connector.connect(user = "root", password = "Password", database = "UserDetails")
+    query = ('select username from UserDetails where cookie = "%s"' % (secretNumber))
+    cursor = connection.cursor()
+    cursor.execute(query)
+    cursor.fetchall()
+    print query
+    for (a) in cursor:
+        print a
+    if cursor.rowcount == 1:
+        print "True"
+        return True
+    print "False"
+    return False
     
 @app.route("/")
 def main():
     global linkList
+    loginHTML = ""
+    if 'secretNum' in request.cookies:
+        print "secretNum"
+        secretNum = request.cookies.get('secretNum')
+        print secretNum
+        if getUserBySecret(secretNum) == True:
+            loginHTML = "user logged in"
     pageContent = commonHeader()
     pageContent += headBar("Fenrir")
     for taskBar in linkList:
         pageContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
-    pageContent+= '''</ul> </nav>
+    pageContent+= '''</ul> </nav> %s
     <p>
         <a href="Articles.html">
             <!--States the page the thumbnail will link to-->
@@ -63,8 +96,8 @@ def main():
             <!--States the page the thumbnail will link to-->
             <img height=200 width=300 src="For Honor.jpg" />
             <!--Sets the height and width of the thumbnail image, and the image to be displayed-->
-        <a/>    
-    </p> </body> </html>'''
+        <a/>
+    </p> </body> </html>''' %(loginHTML)
     return pageContent
 
 @app.route("/Articles")
@@ -182,19 +215,15 @@ def contact():
     pageContent +='''</ul> </nav>''' 
     return pageContent
 
-def secretNumber():
-    returnNumber = ""
-    for i in range(32):
-        returnNumber += str(randint(0,9))
-    return returnNumber
-    
 @app.route("/Login", methods=['GET', 'POST'])
 def login():
     falseLogin = ""
     if request.method == 'POST':
         if checkLogin(request.form['username'], request.form['password']):
+            cookieNum = secretNumber()
             response = make_response(redirect(url_for("main")))
-            response.set_cookie('secretNum', secretNumber())
+            response.set_cookie('secretNum', cookieNum)
+            updateUserCookie(request.form["username"], cookieNum)
             return response
         falseLogin = "Your login details were incorrect"
     print "Display login"
