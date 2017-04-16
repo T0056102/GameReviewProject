@@ -12,13 +12,12 @@ linkList = [["/","Home"],
             ["Login","Login"]
            ]
 
-
 def commonHeader():
     header = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
     <style>
-    ul { list-style-type: none; padding: 0; margin: 0; background-color: #8E44AD; } li { display: inline-block; } li a { display: block; padding: 10px; color: #FDFEFE; } li a:hover { background-color: #BB8FCE; } </style> 
+    ul { list-style-type: none; padding: 0; margin: 0; background-color: 8E44AD; } li { display: inline-block; } li a { display: block; padding: 10px; color: FDFEFE; } li a:hover { background-color: BB8FCE; } </style> 
     <!--Formats the main bar at the top of the screen--> 
     </style>
     </head>'''
@@ -62,23 +61,22 @@ def getUserBySecret(secretNumber):
     cursor = connection.cursor()
     cursor.execute(query)
     cursor.fetchall()
-    print query
-    for (a) in cursor:
-        print a
     if cursor.rowcount == 1:
-        print "True"
         return True
-    print "False"
     return False
-    
+
+def loginExists(username):
+    return True
+
+def storeAccount(username, password):
+    return
+
 @app.route("/")
 def main():
     global linkList
     loginHTML = ""
     if 'secretNum' in request.cookies:
-        print "secretNum"
         secretNum = request.cookies.get('secretNum')
-        print secretNum
         if getUserBySecret(secretNum) == True:
             loginHTML = "user logged in"
     pageContent = commonHeader()
@@ -226,9 +224,8 @@ def login():
             updateUserCookie(request.form["username"], cookieNum)
             return response
         falseLogin = "Your login details were incorrect"
-    print "Display login"
     pageContent = commonHeader()
-    pageContent += headBar("Articles")
+    pageContent += headBar("Login")
     for taskBar in linkList:
         pageContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
     pageContent +='''</ul> </nav> <p>
@@ -265,12 +262,80 @@ def login():
       </div>
     <p>
     </p>
-      <div class="container" style="background-color:#">
-        <span class="psw">Don't have an account? <a href="#">Create one here</a></span>
+      <div class="container" style="background-color:">
+        <span class="psw">Don't have an account? <a href="/CreateAccount">Create one here</a></span>
         <!--Creates a link to the create account page for if a user does not yet have an account-->
       </div>
     </form> </body> </html>''' %(falseLogin)
     return pageContent
 
+@app.route("/CreateAccount", methods=['GET', 'POST'])
+def createAccount():
+    falseCreate = ""
+    if request.method == 'POST':
+        if loginExists(request.form['username']):
+            falseCreate = "username is already taken"
+        else:
+            if request.form['password1'] != request.form['password2']:
+                falseCreate = "passwords do not match"
+            else:
+                storeAccount(request.form['username'], request.form['password1'])
+                return(redirect(url_for("login")))
+    pageContent = commonHeader()
+    pageContent += headBar("Create Account")
+    for taskBar in linkList:
+        pageContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
+    pageContent +='''</ul> </nav> <p>
+    </p>
+    <form action="/Login" method = POST>
+    <!--Creates the form for the login boxes-->
+      <div class="container">
+      <!--Creates a container to put the login boxes in-->
+        <label style="color:red;">%s</label><br>
+        <label><b>Username</b></label>
+        <!--Labels the username box-->
+        <input type="text" 
+        placeholder="Enter Username" 
+        name="username" 
+        required>
+        <!--[input type="text"] Sets the data type to text
+        [placeholder="Enter Username"] sets the placeholder text to be "Enter Username" 
+        [name="username"] names the box "username"
+        [required] makes the data required-->
+
+        <label><b>Password</b></label>
+        <!--Labels the password box-->
+        <input type="password" 
+        placeholder="Enter Password" 
+        name="password1" 
+        required>
+        <!--[input type="password"] Sets the data type to password so it will be hidden
+        [placeholder="Enter Password"] sets the placeholder text to be "Enter Password"
+        [name="password1"] names the box "password1"
+        [required] makes the data requires-->
+                       
+        <label><b>Repeat Password</b></label>
+        <!--Labels the password box-->
+        <input type="password" 
+        placeholder="Enter Password" 
+        name="password2" 
+        required>
+        <!--[input type="password"] Sets the data type to password so it will be hidden
+        [placeholder="Enter Password"] sets the placeholder text to be "Enter Password"
+        [name="password2"] names the box "password2"
+        [required] makes the data requires-->
+
+        <button type="submit">Create</button>
+        <!--Creates the create button-->
+      </div>
+    <p>
+    </p>
+      <div class="container" style="background-color:">
+        <span class="psw">Don't have an account? <a href="">Create one here</a></span>
+        <!--Creates a link to the create account page for if a user does not yet have an account-->
+      </div>
+    </form> </body> </html>''' %(falseCreate)
+    return pageContent
+    
 if __name__ == "__main__":
     app.run()
