@@ -183,11 +183,12 @@ def contact():
 
 @app.route("/Login", methods=['GET', 'POST'])
 def login():
-    print "request.method = %s" % (request.method)
+    falseLogin = ""
     if request.method == 'POST':
         if checkLogin(request.form['username'], request.form['password']):
             print "Re-directing"
             return redirect(url_for("main"))
+        falseLogin = "Your login details were incorrect"
     print "Display login"
     pageContent = commonHeader()
     pageContent += headBar("Articles")
@@ -199,6 +200,7 @@ def login():
     <!--Creates the form for the login boxes-->
       <div class="container">
       <!--Creates a container to put the login boxes in-->
+        <label style="color:red;">%s</label><br>
         <label><b>Username</b></label>
         <!--Labels the username box-->
         <input type="text" 
@@ -230,7 +232,7 @@ def login():
         <span class="psw">Don't have an account? <a href="#">Create one here</a></span>
         <!--Creates a link to the create account page for if a user does not yet have an account-->
       </div>
-    </form> </body> </html>''' 
+    </form> </body> </html>''' %(falseLogin)
     return pageContent
 
 if __name__ == "__main__":
