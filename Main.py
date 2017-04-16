@@ -1,7 +1,4 @@
-from flask import Flask
-from flask import request
-from flask import url_for
-from flask import redirect
+from flask import Flask, request, url_for, redirect
 import mysql.connector
 
 app = Flask(__name__)
@@ -39,15 +36,13 @@ def headBar(pageTitle):
 
 def checkLogin(username, password):
     connection = mysql.connector.connect(user = "root", password = "Password", database = "UserDetails")
-#    query = ("select username from UserDetails where username = %s and password = %s")
-    query = ("select username from UserDetails")
+    query = ("select username from UserDetails where username = %s and password = %s")
     cursor = connection.cursor()
-#    cursor.execute(query,(username, password))
-    cursor.execute(query)
-    for (a) in  cursor:
-        print a
-#    cursor.close()
-#    connection.close()
+    cursor.execute(query,(username, password))
+    cursor.fetchall()
+    if cursor.rowcount == 1:
+        return True
+    return False
     
 @app.route("/")
 def main():
@@ -190,9 +185,9 @@ def contact():
 def login():
     print "request.method = %s" % (request.method)
     if request.method == 'POST':
-        checkLogin("","")
-        print "Re-directing"
-        return redirect(url_for("main"))
+        if checkLogin(request.form['username'], request.form['password']):
+            print "Re-directing"
+            return redirect(url_for("main"))
     print "Display login"
     pageContent = commonHeader()
     pageContent += headBar("Articles")
@@ -208,22 +203,22 @@ def login():
         <!--Labels the username box-->
         <input type="text" 
         placeholder="Enter Username" 
-        name="uname" 
+        name="username" 
         required>
         <!--[input type="text"] Sets the data type to text
         [placeholder="Enter Username"] sets the placeholder text to be "Enter Username" 
-        [name="uname"] names the box "username"
+        [name="username"] names the box "username"
         [required] makes the data required-->
 
         <label><b>Password</b></label>
         <!--Labels the password box-->
         <input type="password" 
         placeholder="Enter Password" 
-        name="psw" 
+        name="password" 
         required>
         <!--[input type="password"] Sets the data type to password so it will be hidden
         [placeholder="Enter Password"] sets the placeholder text to be "Enter Password"
-        [name="psw"] names the box "psw"
+        [name="password"] names the box "password"
         [required] makes the data requires-->
 
         <button type="submit">Login</button>
