@@ -1,4 +1,5 @@
-from flask import Flask, request, url_for, redirect
+from flask import Flask, request, url_for, redirect, make_response
+from random import randint
 import mysql.connector
 
 app = Flask(__name__)
@@ -181,13 +182,20 @@ def contact():
     pageContent +='''</ul> </nav>''' 
     return pageContent
 
+def secretNumber():
+    returnNumber = ""
+    for i in range(32):
+        returnNumber += str(randint(0,9))
+    return returnNumber
+    
 @app.route("/Login", methods=['GET', 'POST'])
 def login():
     falseLogin = ""
     if request.method == 'POST':
         if checkLogin(request.form['username'], request.form['password']):
-            print "Re-directing"
-            return redirect(url_for("main"))
+            response = make_response(redirect(url_for("main")))
+            response.set_cookie('secretNum', secretNumber())
+            return response
         falseLogin = "Your login details were incorrect"
     print "Display login"
     pageContent = commonHeader()
