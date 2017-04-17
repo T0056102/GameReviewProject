@@ -66,10 +66,23 @@ def getUserBySecret(secretNumber):
     return False
 
 def loginExists(username):
-    return True
+    connection = mysql.connector.connect(user = "root", password = "Password", database = "UserDetails")
+    query = ('select username from UserDetails where username = "%s"' % (username))
+    cursor = connection.cursor()
+    cursor.execute(query)
+    cursor.fetchall()
+    if cursor.rowcount > 0:
+        return True
+    return False
 
 def storeAccount(username, password):
-    return
+    connection = mysql.connector.connect(user = "root", password = "Password", database = "UserDetails")
+    query = ("insert into UserDetails (username, password) values (%s, %s)")
+    cursor = connection.cursor()
+    cursor.execute(query,(username, password))
+    query = ("commit")
+    cursor = connection.cursor()
+    cursor.execute(query)
 
 @app.route("/")
 def main():
@@ -287,7 +300,7 @@ def createAccount():
         pageContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
     pageContent +='''</ul> </nav> <p>
     </p>
-    <form action="/Login" method = POST>
+    <form action="/CreateAccount" method = POST>
     <!--Creates the form for the login boxes-->
       <div class="container">
       <!--Creates a container to put the login boxes in-->
