@@ -88,6 +88,21 @@ def storeAccount(username, password):
     cursor = connection.cursor()
     cursor.execute(query)
 
+def getArticles():
+    returnHTML = ""
+    connection = mysql.connector.connect(user = "root", password = "Password", database = "UserDetails")
+    query = ("select title from articles")
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(query)
+
+    for a in cursor:
+        returnHTML += str(a['title'])+"<br>"
+
+    if len(returnHTML) == 0:
+        returnHTML = "There are no articles"
+    
+    return returnHTML
+
 @app.route("/")
 def main():
     global linkList
@@ -116,6 +131,7 @@ def main():
 @app.route("/Articles")
 def articles():
     global linkList
+    listArticles = getArticles()
     pageContent = commonHeader()
     pageContent += headBar("Articles")
     pageContent +='''</ul> </nav> <p>
@@ -144,7 +160,9 @@ def articles():
             </p>
         </fieldset>
     </form>
-    </p> </body> </html>'''
+    </p>
+    %s
+    </body> </html>''' % (listArticles)
     return pageContent
 
 @app.route("/UserReviews")
