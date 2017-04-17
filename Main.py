@@ -17,17 +17,21 @@ def commonHeader():
     <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
     <style>
-    ul { list-style-type: none; padding: 0; margin: 0; background-color: 8E44AD; } li { display: inline-block; } li a { display: block; padding: 10px; color: FDFEFE; } li a:hover { background-color: BB8FCE; } </style> 
+    li { list-style-type: none; padding: 0; margin: 0; background-color: #8E44AD; } li { display: inline-block; } li a { display: block; padding: 10px; color: #FDFEFE; } li a:hover { background-color: #BB8FCE; } </style> 
     <!--Formats the main bar at the top of the screen--> 
     </style>
     </head>'''
     return header
 
 def headBar(pageTitle):
+    linkContent = ""
+    for taskBar in linkList:
+        linkContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
     headText = '''<body>
     <h1>%s</h1>
     <!--Sets the title of the page-->
-    <nav> <ul>''' % (pageTitle)
+    %s
+    <nav> <ul>''' % (pageTitle, linkContent)
     return headText
 
 def checkLogin(username, password):
@@ -94,8 +98,6 @@ def main():
             loginHTML = "user logged in"
     pageContent = commonHeader()
     pageContent += headBar("Fenrir")
-    for taskBar in linkList:
-        pageContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
     pageContent+= '''</ul> </nav> %s
     <p>
         <a href="Articles.html">
@@ -116,8 +118,6 @@ def articles():
     global linkList
     pageContent = commonHeader()
     pageContent += headBar("Articles")
-    for taskBar in linkList:
-        pageContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
     pageContent +='''</ul> </nav> <p>
     <form>
     <!--Creates a form-->
@@ -151,8 +151,6 @@ def articles():
 def userReviews():
     pageContent = commonHeader()
     pageContent += headBar("User Reviews")
-    for taskBar in linkList:
-        pageContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
     pageContent +='''</ul> </nav> <p>
     <form>
     <!--Creates a form-->
@@ -186,8 +184,6 @@ def userReviews():
 def upcomingReleases():
     pageContent = commonHeader()
     pageContent += headBar("Upcoming Releases")
-    for taskBar in linkList:
-        pageContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
     pageContent +='''</ul> </nav> <p>
     <form>
     <!--Creates a form-->
@@ -221,8 +217,6 @@ def upcomingReleases():
 def contact():
     pageContent = commonHeader()
     pageContent += headBar("Contact")
-    for taskBar in linkList:
-        pageContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
     pageContent +='''</ul> </nav>''' 
     return pageContent
 
@@ -239,8 +233,6 @@ def login():
         falseLogin = "Your login details were incorrect"
     pageContent = commonHeader()
     pageContent += headBar("Login")
-    for taskBar in linkList:
-        pageContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
     pageContent +='''</ul> </nav> <p>
     </p>
     <form action="/Login" method = POST>
@@ -296,8 +288,6 @@ def createAccount():
                 return(redirect(url_for("login")))
     pageContent = commonHeader()
     pageContent += headBar("Create Account")
-    for taskBar in linkList:
-        pageContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
     pageContent +='''</ul> </nav> <p>
     </p>
     <form action="/CreateAccount" method = POST>
