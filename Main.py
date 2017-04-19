@@ -1,25 +1,31 @@
+#Imports functions needed
 from flask import Flask, request, url_for, redirect, make_response
 from random import randint
 import mysql.connector
 
 app = Flask(__name__)
 
+#Sets up the list of links that will be on the bar at the top
 linkList = [["/","Home"],
             ["Articles","Articles"],
             ["UserReviews","User Reviews"],
             ["UpcomingReleases","Upcoming Releases"],
             ["Contact","Contact"],
-            ["Login","Login"]
+            ["Login","Login"]#Left is the page that will be linked to, right is the label of the button
            ]
 
+#Defines the function that will format the task bar at the top of the screen
 def commonHeader():
     header = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
     <style>
-    li { list-style-type: none; padding: 0; margin: 0; background-color: #8E44AD; } li { display: inline-block; } li a { display: block; padding: 10px; color: #FDFEFE; } li a:hover { background-color: #BB8FCE; } </style> 
+    li { list-style-type: none; padding: 0; margin: 0; background-color: #8E44AD; }
+    li { display: inline-block; }
+    li a { display: block; padding: 10px; color: #FDFEFE; }
+    li a:hover { background-color: #BB8FCE; }
     <!--Formats the main bar at the top of the screen--> 
-    </style>
+    </style> 
     </head>'''
     return header
 
@@ -35,7 +41,7 @@ def headBar(pageTitle):
     return headText
 
 def checkLogin(username, password):
-    connection = mysql.connector.connect(user = "root", password = "Password", database = "UserDetails")
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
     query = ("select username from UserDetails where username = %s and password = %s")
     cursor = connection.cursor()
     cursor.execute(query,(username, password))
@@ -51,7 +57,7 @@ def secretNumber():
     return returnNumber
 
 def updateUserCookie(username, secretNumber):
-    connection = mysql.connector.connect(user = "root", password = "Password", database = "UserDetails")
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
     query = ("update UserDetails set cookie = %s where username = %s")
     cursor = connection.cursor()
     cursor.execute(query,(secretNumber, username))
@@ -60,7 +66,7 @@ def updateUserCookie(username, secretNumber):
     cursor.execute(query)
 
 def getUserBySecret(secretNumber):
-    connection = mysql.connector.connect(user = "root", password = "Password", database = "UserDetails")
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
     query = ('select username from UserDetails where cookie = "%s"' % (secretNumber))
     cursor = connection.cursor()
     cursor.execute(query)
@@ -70,7 +76,7 @@ def getUserBySecret(secretNumber):
     return False
 
 def loginExists(username):
-    connection = mysql.connector.connect(user = "root", password = "Password", database = "UserDetails")
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
     query = ('select username from UserDetails where username = "%s"' % (username))
     cursor = connection.cursor()
     cursor.execute(query)
@@ -80,7 +86,7 @@ def loginExists(username):
     return False
 
 def storeAccount(username, password):
-    connection = mysql.connector.connect(user = "root", password = "Password", database = "UserDetails")
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
     query = ("insert into UserDetails (username, password) values (%s, %s)")
     cursor = connection.cursor()
     cursor.execute(query,(username, password))
@@ -90,17 +96,14 @@ def storeAccount(username, password):
 
 def getArticles():
     returnHTML = ""
-    connection = mysql.connector.connect(user = "root", password = "Password", database = "UserDetails")
-    query = ("select title from articles")
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    query = ("select ArticleID,title from articles")
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
-
     for a in cursor:
-        returnHTML += str(a['title'])+"<br>"
-
+        returnHTML += "<a href='/Articles/%s'>%s</a><br>" % (str(a['ArticleID']),str(a['title']))
     if len(returnHTML) == 0:
-        returnHTML = "There are no articles"
-    
+        returnHTML = "There are no articles"   
     return returnHTML
 
 @app.route("/")
@@ -128,6 +131,15 @@ def main():
     </p> </body> </html>''' %(loginHTML)
     return pageContent
 
+@app.route("/Articles/<articleID>")
+def articleDetails(articleID):
+    global linkList
+    listArticles = getArticles()
+    pageContent = commonHeader()
+    pageContent += headBar("Articles")
+    pageContent +='''</ul> </nav> <p> Stuff %s</p>''' % (articleID)
+    return pageContent
+    
 @app.route("/Articles")
 def articles():
     global linkList
