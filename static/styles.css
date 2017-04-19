@@ -1,0 +1,36 @@
+.menu_bar { 
+  list-style-type: none; 
+  padding: 0; 
+  margin: 0; 
+  background-color: #8E44AD;
+  display: inline-block;
+}
+.menu_item { 
+  display: block; 
+  padding: 10px; 
+  color: #FDFEFE;
+}
+
+li a:hover { background-color: #BB8FCE; }
+
+.article_box {
+  display: inline-block;
+  width: 35%;
+  height: 20%;
+  font-size: 2vw;
+  line-height: 200%;
+  border: 3px solid #4A3F3B;
+  background-color: #FFFFFF;
+  text-align: center;
+  -moz-user-select: -moz-none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  border-radius: 25px;
+}
+
+.article_img {
+  max-width: 400px;
+  max-height: 180px;
+}

@@ -19,20 +19,14 @@ def commonHeader():
     header = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
-    <style>
-    li { list-style-type: none; padding: 0; margin: 0; background-color: #8E44AD; }
-    li { display: inline-block; }
-    li a { display: block; padding: 10px; color: #FDFEFE; }
-    li a:hover { background-color: #BB8FCE; }
-    <!--Formats the main bar at the top of the screen--> 
-    </style> 
+	<link href="/static/styles.css" rel="stylesheet">
     </head>'''
     return header
 
 def headBar(pageTitle):
     linkContent = ""
     for taskBar in linkList:
-        linkContent += '<li><a href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
+        linkContent += '<li class="menu_bar"><a class="menu_item" href="%s">%s</a></li>' % (taskBar[0],taskBar[1])
     headText = '''<body>
     <h1>%s</h1>
     <!--Sets the title of the page-->
@@ -97,11 +91,11 @@ def storeAccount(username, password):
 def getArticles():
     returnHTML = ""
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
-    query = ("select ArticleID,title from articles")
+    query = ("select ArticleID, title, img_url from articles")
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     for a in cursor:
-        returnHTML += "<a href='/Articles/%s'>%s</a><br>" % (str(a['ArticleID']),str(a['title']))
+        returnHTML += "<div class='article_box'><a href='/Articles/%s'><img class='article_img' src='%s'><br>%s</a></div>" % (str(a['ArticleID']), str(a['img_url']),str(a['title']))
     if len(returnHTML) == 0:
         returnHTML = "There are no articles"   
     return returnHTML
@@ -117,18 +111,7 @@ def main():
     pageContent = commonHeader()
     pageContent += headBar("Fenrir")
     pageContent+= '''</ul> </nav> %s
-    <p>
-        <a href="Articles.html">
-            <!--States the page the thumbnail will link to-->
-            <img height=200 width=300 src="a e s t h e t i c.jpg" />
-            <!--Sets the height and width of the thumbnail image, and the image to be displayed-->
-        <a/> 
-        <a href="User Reviews.html">
-            <!--States the page the thumbnail will link to-->
-            <img height=200 width=300 src="For Honor.jpg" />
-            <!--Sets the height and width of the thumbnail image, and the image to be displayed-->
-        <a/>
-    </p> </body> </html>''' %(loginHTML)
+    <p> </p> </body> </html>''' %(loginHTML)
     return pageContent
 
 @app.route("/Articles/<articleID>")
