@@ -100,6 +100,34 @@ def getArticles():
         returnHTML = "There are no articles"   
     return returnHTML
 
+def getUserArticles():
+    returnHTML = ""
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    query = ("select ArticleID, title, img_url from UserArticles")
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(query)
+    for a in cursor:
+        returnHTML += "<div class='article_box'><a href='/UserReviews/%s'><img class='article_img' src='%s'><br>%s</a></div>" % (str(a['ArticleID']), str(a['img_url']),str(a['title']))
+    if len(returnHTML) == 0:
+        returnHTML = "There are no articles"   
+    return returnHTML
+
+def getArticleDetails(ArticleID):
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    query = ("select ArticleID, title, img_url, body, score from articles where ArticleID = '%s'" % (ArticleID))
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(query)
+    for a in cursor:
+        return "<h1>%s</h1><img src='%s'><p>%s</p><p>%s</p>" % (str(a['title']), str(a['img_url']), str(a['body']), str(a['score']))
+
+def getUserArticleDetails(ArticleID):
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    query = ("select ArticleID, title, img_url, body, score from UserArticles where ArticleID = '%s'" % (ArticleID))
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(query)
+    for a in cursor:
+        return "<h1>%s</h1><img src='%s'><p>%s</p><p>%s</p>" % (str(a['title']), str(a['img_url']), str(a['body']), str(a['score']))
+    
 @app.route("/")
 def main():
     global linkList
@@ -117,10 +145,10 @@ def main():
 @app.route("/Articles/<articleID>")
 def articleDetails(articleID):
     global linkList
-    listArticles = getArticles()
+    articleDetails = getArticleDetails(articleID)
     pageContent = commonHeader()
     pageContent += headBar("Articles")
-    pageContent +='''</ul> </nav> <p> Stuff %s</p>''' % (articleID)
+    pageContent +='''</ul> </nav> <p>%s</p>''' % (articleDetails)
     return pageContent
     
 @app.route("/Articles")
@@ -162,6 +190,8 @@ def articles():
 
 @app.route("/UserReviews")
 def userReviews():
+    global linkList
+    listUserArticles = getUserArticles()
     pageContent = commonHeader()
     pageContent += headBar("User Reviews")
     pageContent +='''</ul> </nav> <p>
@@ -190,7 +220,18 @@ def userReviews():
             </p>
         </fieldset>
     </form>
-    </p> </body> </html>'''
+    </p>
+    %s
+    </body> </html>''' % (listUserArticles)
+    return pageContent
+
+@app.route("/UserReviews/<articleID>")
+def UserArticleDetails(articleID):
+    global linkList
+    articleDetails = getUserArticleDetails(articleID)
+    pageContent = commonHeader()
+    pageContent += headBar("User Reviews")
+    pageContent +='''</ul> </nav> <p>%s</p>''' % (articleDetails)
     return pageContent
 
 @app.route("/UpcomingReleases")
