@@ -1,9 +1,38 @@
 #Imports functions needed
 from flask import Flask, request, url_for, redirect, make_response
 from random import randint
+from subprocess import call
+import sys
 import mysql.connector
 
 app = Flask(__name__)
+
+#Start-up function
+@app.before_first_request
+def createDatabase():
+    try:
+        connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    except:
+        try:
+            connection = mysql.connector.connect(user = "root", password = "Password1!")
+            query = ("create database GameReview;")
+            cursor = connection.cursor()
+            cursor.execute(query)
+            query = ("use GameReview;")
+            cursor = connection.cursor()
+            cursor.execute(query)
+            query = ("create table UserDetails (username varchar(32), password varchar(32), cookie varchar(32));")
+            cursor = connection.cursor()
+            cursor.execute(query)
+            query = ("create table articles (ArticleID decimal(10,0), title varchar(256), img_url varchar(256), body text, score decimal(3,1));")
+            cursor = connection.cursor()
+            cursor.execute(query)
+            query = ("commit;")
+            cursor = connection.cursor()
+            cursor.execute(query)
+        except:
+            print "Oh no"
+            sys.exit(-1)
 
 #Sets up the list of links that will be on the bar at the top
 linkList = [["/","Home"],
