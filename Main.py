@@ -267,6 +267,7 @@ def articles():
                 <!--Labels the drop down box-->
                 <select id = "myList">
                 <!--Creates the list of things to display in the drop down box-->
+                    <option value = "0">All</option>
                     <option value = "1">Action</option>
                     <option value = "2">Adventure</option>
                     <option value = "3">Indie</option>
@@ -353,6 +354,7 @@ def userReviews():
                 <!--Labels the drop down box-->
                 <select id = "myList">
                 <!--Creates the list of things to display in the drop down box-->
+                    <option value = "0">All</option>
                     <option value = "1">Action</option>
                     <option value = "2">Adventure</option>
                     <option value = "3">Indie</option>
