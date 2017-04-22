@@ -1,3 +1,4 @@
+
 #Imports functions needed
 from flask import Flask, request, url_for, redirect, make_response
 from random import randint
@@ -20,14 +21,14 @@ def createDatabase():
             cursor.execute(query)
             query = ("use GameReview;")
             cursor = connection.cursor()
-            cursor.execute(query)
+            print cursor.execute(query)
             query = ("create table UserDetails (username varchar(32), password varchar(32), cookie varchar(32));")
             cursor = connection.cursor()
             cursor.execute(query)
-            query = ("create table articles (ArticleID decimal(10,0), title varchar(256), img_url varchar(256), body text, score decimal(3,1));")
+            query = ("create table articles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), body text, score decimal(3,1),PRIMARY KEY (ArticleID));")
             cursor = connection.cursor()
             cursor.execute(query)
-            query = ("create table UserArticles (ArticleID decimal(10,0), title varchar(256), img_url varchar(256), body text, score decimal(3,1));")
+            query = ("create table UserArticles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), body text, score decimal(3,1),PRIMARY KEY (ArticleID));")
             cursor = connection.cursor()
             cursor.execute(query)
             query = ("commit;")
