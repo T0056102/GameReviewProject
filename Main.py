@@ -231,7 +231,14 @@ def main():
     pageContent = commonHeader()
     pageContent += headBar("Fenrir")
     pageContent+= '''</ul> </nav> %s
-    <p> </p> </body> </html>''' %(loginHTML)
+    <p>Welcome to Fenrir, my computing coursework project.</p>
+    <p>In order to view articles made by me, or another moderator, click on the articles tab.</p>
+    <p>To view articles by users, or write your own article, click on the User Reviews tab.</p>
+    <p>To view the upcoming releases, click on the upcoming releases tab.</p>
+    <p>If you need to contact me, click on the contact tab and you will be able to email me.</p>
+    <p>To login or create an account, click on the login tab.</p>
+    <p>Thankyou for visiting Fenrir.</p>
+    </body> </html>''' %(loginHTML)
     return pageContent
 
 @app.route("/Articles/<articleID>")
