@@ -171,6 +171,36 @@ def getUserArticleDetails(ArticleID):
     cursor.execute(query)
     for a in cursor:
         return "<h1>%s</h1><img src='%s'><p>%s</p><p>%s</p>" % (str(a['title']), str(a['img_url']), str(a['body']), str(a['score']))
+
+def checkCreate(title, score, body, image):
+    if title == "":
+        return "you must enter a title"
+    if len(title)>256:
+        return "title too long, cannot be more than 256 characters long"
+    if score == "":
+        return "you must enter a score"
+    try:
+        float(score)
+    except:
+        return "score must be a number"
+    if float(score) >10 or float(score)<0:
+        return "score (%s) must be between 0 and 10" % (score)
+    if body == "":
+        return "you must enter a body"
+    if image == "":
+        return "you must enter an image URL"
+    if len(image) >256:
+        return "Image url must beat most 256 characters long"
+    return ""
+
+def createReview(title, score, body, image):
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    query = ("insert into UserArticles (title, img_url, body, score) values (%s, %s, %s, %s)")
+    cursor = connection.cursor()
+    cursor.execute(query,(title, image, body, score))
+    query = ("commit")
+    cursor = connection.cursor()
+    cursor.execute(query)
     
 @app.route("/")
 def main():
@@ -232,14 +262,53 @@ def articles():
     </body> </html>''' % (listArticles)
     return pageContent
 
-@app.route("/CreateUserReview")
+@app.route("/CreateUserReview", methods = ['GET', 'POST'])
 def createUserReviews():
     global linkList
+    errorMessage = ""
+    if request.method == 'POST':
+        errorMessage = checkCreate(request.form['title'], request.form['score'], request.form['body'], request.form['image'])
+        if errorMessage == "":
+            createReview(request.form['title'], request.form['score'], request.form['body'], request.form['image'])
+            return redirect(url_for('userReviews'))
     listUserArticles = getUserArticles()
     pageContent = commonHeader()
     pageContent += headBar("Create a Review")
-    pageContent +='''sefouin </body> </html>
-    '''
+    pageContent +='''</ul> </nav> <p>
+    </P>
+    <form method=POST>
+        <div class="container">
+            <label><b>Title</b></label>
+            <!--Labels the title box-->
+            <input type="text" 
+            placeholder="Enter Title" 
+            name="title" 
+            required>
+            <label><b>Score</b></label>
+            <!--Labels the score box-->
+            <input type="text" 
+            placeholder="Enter Score" 
+            name="score" 
+            required>
+            <label><b>Body</b></label>
+            <!--Labels the body box-->
+            <input type="text" 
+            placeholder="Enter Body" 
+            name="body" 
+            required>
+            <label><b>Image</b></label>
+            <!--Labels the image box-->
+            <input type="text" 
+            placeholder="Enter Image URL" 
+            name="image" 
+            required>
+            <button type="submit">Create</button>
+            <!--Creates the create button-->
+        </div>
+    </form>
+    %s
+    </body> </html>
+    ''' % (errorMessage)
     return pageContent
     
 @app.route("/UserReviews")
