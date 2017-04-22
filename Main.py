@@ -55,6 +55,7 @@ def commonHeader():
     </head>'''
     return header
 
+#Defines the function that will set the title on each page 
 def headBar(pageTitle):
     linkContent = ""
     for taskBar in linkList:
@@ -66,32 +67,43 @@ def headBar(pageTitle):
     <nav> <ul>''' % (pageTitle, linkContent)
     return headText
 
+#Defines the function that checks the login details of a user against what is in the database
 def checkLogin(username, password):
+    #Connects to the GameReview database
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
     query = ("select username from UserDetails where username = %s and password = %s")
     cursor = connection.cursor()
+    #Searches for the username and password
     cursor.execute(query,(username, password))
+    #Fetches the usernames and passwords from the database
     cursor.fetchall()
     if cursor.rowcount == 1:
         return True
     return False
 
+#Defines the function that creates the cookie for the user that will keep them logged in
 def secretNumber():
     returnNumber = ""
     for i in range(32):
+        #Makes returnNumber be a random 32 digit number 
         returnNumber += str(randint(0,9))
     return returnNumber
 
+#Defines the function that updates the user's cookie as they change screens
 def updateUserCookie(username, secretNumber):
+    #Connects to the GameReview database
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
     query = ("update UserDetails set cookie = %s where username = %s")
     cursor = connection.cursor()
+    #Searches for the cookie in the database
     cursor.execute(query,(secretNumber, username))
     query = ("commit")
     cursor = connection.cursor()
     cursor.execute(query)
 
+#Defines the function that will determine which user is logged in by looking at their cookie
 def getUserBySecret(secretNumber):
+    #Connects to the database
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
     query = ('select username from UserDetails where cookie = "%s"' % (secretNumber))
     cursor = connection.cursor()
@@ -220,6 +232,16 @@ def articles():
     </body> </html>''' % (listArticles)
     return pageContent
 
+@app.route("/CreateUserReview")
+def createUserReviews():
+    global linkList
+    listUserArticles = getUserArticles()
+    pageContent = commonHeader()
+    pageContent += headBar("Create a Review")
+    pageContent +='''sefouin </body> </html>
+    '''
+    return pageContent
+    
 @app.route("/UserReviews")
 def userReviews():
     global linkList
@@ -251,6 +273,11 @@ def userReviews():
                 </select>
             </p>
         </fieldset>
+    </form>
+    </p>
+    <p>
+    <form action="/CreateUserReview" method = GET>
+    <button type="submit">Create article</button>
     </form>
     </p>
     %s
