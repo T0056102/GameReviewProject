@@ -21,14 +21,14 @@ def createDatabase():
             cursor.execute(query)
             query = ("use GameReview;")
             cursor = connection.cursor()
-            print cursor.execute(query)
+            cursor.execute(query)
             query = ("create table UserDetails (username varchar(32), password varchar(32), cookie varchar(32));")
             cursor = connection.cursor()
             cursor.execute(query)
-            query = ("create table articles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), body text, score decimal(3,1),PRIMARY KEY (ArticleID));")
+            query = ("create table articles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), body text, score decimal(3,1), genre decimal(2,0), PRIMARY KEY (ArticleID));")
             cursor = connection.cursor()
             cursor.execute(query)
-            query = ("create table UserArticles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), body text, score decimal(3,1),PRIMARY KEY (ArticleID));")
+            query = ("create table UserArticles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), body text, score decimal(3,1), genre decimal(2,0),PRIMARY KEY (ArticleID));")
             cursor = connection.cursor()
             cursor.execute(query)
             query = ("create table UpcomingReleases (title varchar(256), platforms varchar(256), date varchar(8));")
@@ -136,10 +136,13 @@ def storeAccount(username, password):
     cursor = connection.cursor()
     cursor.execute(query)
 
-def getArticles():
+def getArticles(genre):
     returnHTML = ""
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
-    query = ("select ArticleID, title, img_url from articles")
+    whereStatement = ""
+    if genre != None and genre != 0:
+        whereStatement = "where genre = %s" % (genre)
+    query = ("select ArticleID, title, img_url from articles %s" % (whereStatement))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     for a in cursor:
@@ -148,10 +151,14 @@ def getArticles():
         returnHTML = "There are no articles"   
     return returnHTML
 
-def getUserArticles():
+def getUserArticles(genre):
     returnHTML = ""
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
-    query = ("select ArticleID, title, img_url from UserArticles")
+    whereStatement = ""
+    if genre != None and genre != 0:
+        whereStatement = "where genre = %s" % (genre)
+    print "Where statement: %s" % (genre)
+    query = ("select ArticleID, title, img_url from UserArticles %s" % (whereStatement))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     for a in cursor:
@@ -197,11 +204,11 @@ def checkCreate(title, score, body, image):
         return "Image url must beat most 256 characters long"
     return ""
 
-def createReview(title, score, body, image):
+def createReview(title, score, body, image, genre):
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
-    query = ("insert into UserArticles (title, img_url, body, score) values (%s, %s, %s, %s)")
+    query = ("insert into UserArticles (title, img_url, body, score, genre) values (%s, %s, %s, %s, %s)")
     cursor = connection.cursor()
-    cursor.execute(query,(title, image, body, score))
+    cursor.execute(query,(title, image, body, score, genre))
     query = ("commit")
     cursor = connection.cursor()
     cursor.execute(query)
@@ -217,8 +224,30 @@ def getUpcoming():
         upcomingFound = True
         returnHTML += "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % (a['date'], a['title'], a['platforms'])
     if upcomingFound == False:
-        returnHTML = "There are no upcoming releases"   
+        returnHTML = "There are no upcoming releases"
     return returnHTML
+
+def genreList(submit):
+    submitText = ""
+    if submit == True:
+        submitText = 'onchange="this.form.submit()"'
+    return '''<label>Game Genre</label>
+                <!--Labels the drop down box-->
+                <select name="genre" id = "genre" %s>
+                <!--Creates the list of things to display in the drop down box-->
+                    <option value = "0">All</option>
+                    <option value = "1">Action</option>
+                    <option value = "2">Adventure</option>
+                    <option value = "3">Indie</option>
+                    <option value = "4">Strategy</option>
+                    <option value = "5">Free to Play</option>
+                    <option value = "6">Singleplayer</option>
+                    <option value = "7">Multiplayer</option>
+                    <option value = "8">Racing</option>
+                    <option value = "9">FPS</option>
+                    <option value = "10">Shooter</option>
+                    <option value = "11">Co-op</option>
+                </select>''' % (submitText)
     
 @app.route("/")
 def main():
@@ -250,42 +279,28 @@ def articleDetails(articleID):
     pageContent +='''</ul> </nav> <p>%s</p>''' % (articleDetails)
     return pageContent
     
-@app.route("/Articles")
+@app.route("/Articles", methods = ['GET', 'POST'])
 def articles():
     global linkList
-    listArticles = getArticles()
+    listArticles = getArticles(request.form.get('genre'))
+    #if request.method=='POST':
+     #   listArticles+="<BR>select = %s<BR>" % (request.form.get('genre'))
     pageContent = commonHeader()
     pageContent += headBar("Articles")
     pageContent +='''</ul> </nav> <p>
-    <form>
+    <form action="/Articles" method="POST">
     <!--Creates a form-->
         <fieldset>
         <legend>Filter Reviews</legend>
         <!--Sets the title of the form-->
             <p>
-                <label>Game Genre</label>
-                <!--Labels the drop down box-->
-                <select id = "myList">
-                <!--Creates the list of things to display in the drop down box-->
-                    <option value = "0">All</option>
-                    <option value = "1">Action</option>
-                    <option value = "2">Adventure</option>
-                    <option value = "3">Indie</option>
-                    <option value = "4">Strategy</option>
-                    <option value = "5">Free to Play</option>
-                    <option value = "6">Singleplayer</option>
-                    <option value = "7">Multiplayer</option>
-                    <option value = "8">Racing</option>
-                    <option value = "9">FPS</option>
-                    <option value = "10">Shooter</option>
-                    <option value = "11">Co-op</option>
-                </select>
+                %s
             </p>
         </fieldset>
     </form>
     </p>
     %s
-    </body> </html>''' % (listArticles)
+    </body> </html>''' % (genreList(True), listArticles)
     return pageContent
 
 @app.route("/CreateUserReview", methods = ['GET', 'POST'])
@@ -295,9 +310,9 @@ def createUserReviews():
     if request.method == 'POST':
         errorMessage = checkCreate(request.form['title'], request.form['score'], request.form['body'], request.form['image'])
         if errorMessage == "":
-            createReview(request.form['title'], request.form['score'], request.form['body'], request.form['image'])
+            createReview(request.form['title'], request.form['score'], request.form['body'], request.form['image'], request.form['genre'])
             return redirect(url_for('userReviews'))
-    listUserArticles = getUserArticles()
+    listUserArticles = getUserArticles(request.form.get('genre'))
     pageContent = commonHeader()
     pageContent += headBar("Create a Review")
     pageContent +='''</ul> </nav> <p>
@@ -328,45 +343,32 @@ def createUserReviews():
             placeholder="Enter Image URL" 
             name="image" 
             required>
+            <label><b>Genre</b></label>
+            %s
             <button type="submit">Create</button>
             <!--Creates the create button-->
         </div>
     </form>
     %s
     </body> </html>
-    ''' % (errorMessage)
+    ''' % (genreList(False), errorMessage)
     return pageContent
     
-@app.route("/UserReviews")
+@app.route("/UserReviews", methods = ['GET', 'POST'])
 def userReviews():
     global linkList
-    listUserArticles = getUserArticles()
+    print "Genre %s" % (request.form.get('genre'))
+    listUserArticles = getUserArticles(request.form.get('genre'))
     pageContent = commonHeader()
     pageContent += headBar("User Reviews")
     pageContent +='''</ul> </nav> <p>
-    <form>
+    <form action="/UserReviews" method="POST">
     <!--Creates a form-->
         <fieldset>
         <legend>Filter Reviews</legend>
         <!--Sets the title of the form-->
             <p>
-                <label>Game Genre</label>
-                <!--Labels the drop down box-->
-                <select id = "myList">
-                <!--Creates the list of things to display in the drop down box-->
-                    <option value = "0">All</option>
-                    <option value = "1">Action</option>
-                    <option value = "2">Adventure</option>
-                    <option value = "3">Indie</option>
-                    <option value = "4">Strategy</option>
-                    <option value = "5">Free to Play</option>
-                    <option value = "6">Singleplayer</option>
-                    <option value = "7">Multiplayer</option>
-                    <option value = "8">Racing</option>
-                    <option value = "9">FPS</option>
-                    <option value = "10">Shooter</option>
-                    <option value = "11">Co-op</option>
-                </select>
+                %s
             </p>
         </fieldset>
     </form>
@@ -377,7 +379,7 @@ def userReviews():
     </form>
     </p>
     %s
-    </body> </html>''' % (listUserArticles)
+    </body> </html>''' % (genreList(True), listUserArticles)
     return pageContent
 
 @app.route("/UserReviews/<articleID>")
