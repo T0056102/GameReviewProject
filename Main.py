@@ -31,6 +31,9 @@ def createDatabase():
             query = ("create table UserArticles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), body text, score decimal(3,1),PRIMARY KEY (ArticleID));")
             cursor = connection.cursor()
             cursor.execute(query)
+            query = ("create table UpcomingReleases (title varchar(256), platforms varchar(256), date varchar(8));")
+            cursor = connection.cursor()
+            cursor.execute(query)
             query = ("commit;")
             cursor = connection.cursor()
             cursor.execute(query)
@@ -202,6 +205,20 @@ def createReview(title, score, body, image):
     query = ("commit")
     cursor = connection.cursor()
     cursor.execute(query)
+
+def getUpcoming():
+    returnHTML = "<table><tr><td>Date</td><td>Title</td><td>Platforms</td></tr>"
+    upcomingFound = False
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    query = ("select title, platforms, date from upcomingreleases")
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(query)
+    for a in cursor:
+        upcomingFound = True
+        returnHTML += "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % (a['date'], a['title'], a['platforms'])
+    if upcomingFound == False:
+        returnHTML = "There are no upcoming releases"   
+    return returnHTML
     
 @app.route("/")
 def main():
@@ -368,32 +385,8 @@ def upcomingReleases():
     pageContent = commonHeader()
     pageContent += headBar("Upcoming Releases")
     pageContent +='''</ul> </nav> <p>
-    <form>
-    <!--Creates a form-->
-        <fieldset>
-        <legend>Filter Releases</legend>
-        <!--Sets the title of the form-->
-            <p>
-                <label>Game Genre</label>
-                <!--Labels the drop down box-->
-                <select id = "myList">
-                <!--Creates the list of things to display in the drop down box-->
-                    <option value = "1">Action</option>
-                    <option value = "2">Adventure</option>
-                    <option value = "3">Indie</option>
-                    <option value = "4">Strategy</option>
-                    <option value = "5">Free to Play</option>
-                    <option value = "6">Singleplayer</option>
-                    <option value = "7">Multiplayer</option>
-                    <option value = "8">Racing</option>
-                    <option value = "9">FPS</option>
-                    <option value = "10">Shooter</option>
-                    <option value = "11">Co-op</option>
-                </select>
-            </p>
-        </fieldset>
-    </form>
-    </p> </body> </html>''' 
+    %s
+    </p> </body> </html>''' % (getUpcoming())
     return pageContent
 
 @app.route("/Contact")
