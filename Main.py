@@ -246,7 +246,7 @@ def getUpcoming():
     returnHTML = "<table><tr><td>Date</td><td>Title</td><td>Platforms</td></tr>"
     upcomingFound = False
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
-    query = ("select title, platforms, date from upcomingreleases")
+    query = ("select title, platforms, date from UpcomingReleases")
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     for a in cursor:
@@ -314,7 +314,7 @@ def sendEmail(message):
     msg['Subject'] = "subject"
     msg['From'] = "t0056102@cardinalnewman.ac.uk"
 #    msg['To'] = "therobster1000@gmail.com"
-    msg['To'] = "ian@xeon"
+    msg['To'] = "robert@dev.ellisbs.co.uk"
 
     s = smtplib.SMTP('192.168.0.109')
     s.sendmail(msg['From'], [msg['To']], msg.as_string())
