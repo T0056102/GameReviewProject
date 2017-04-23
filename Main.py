@@ -37,7 +37,6 @@ def createDatabase():
             cursor = connection.cursor()
             cursor.execute(query)
         except:
-            print "Oh no"
             sys.exit(-1)
 
 #Sets up the list of links that will be on the bar at the top
@@ -77,7 +76,7 @@ def checkLogin(username, password):
     query = ("select username from UserDetails where username = %s and password = %s")
     cursor = connection.cursor()
     #Searches for the username and password
-    cursor.execute(query,(username, password))
+    cursor.execute(query,(username, decryptXOR(str(password))))
     #Fetches the usernames and passwords from the database
     cursor.fetchall()
     if cursor.rowcount == 1:
@@ -130,7 +129,7 @@ def storeAccount(username, password):
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
     query = ("insert into UserDetails (username, password) values (%s, %s)")
     cursor = connection.cursor()
-    cursor.execute(query,(username, password))
+    cursor.execute(query,(username, encryptXOR(str(password))))
     query = ("commit")
     cursor = connection.cursor()
     cursor.execute(query)
@@ -142,13 +141,10 @@ def quickSort(data,orderBy):
     a = 0
     while a < len(data):
         if a == midpoint:
-            print "DEBUG: MIDPOINT %s, %s" % (a,midpoint)
             pass
         elif (orderBy=="0" and data[a][0] < data[midpoint][0]) or (orderBy=="1" and data[a][0] > data[midpoint][0]):
-            print "To Lower: Order By: %s; data[%s][0] = '%s'; data[%s][0] = '%s'" % (orderBy,a,data[a][0],midpoint,data[midpoint][0])
             lowerList.append(data[a])
         else:
-            print "To Higher: Order By: %s; data[%s][0] = '%s'; data[%s][0] = '%s'" % (orderBy,a,data[a][0],midpoint,data[midpoint][0])
             higherList.append(data[a])
         a += 1
     if len(lowerList) > 1:
@@ -172,37 +168,30 @@ def getArticles(genre, orderBy):
     sortList = []
     for a in cursor:
         sortList.append([a['ArticleID'], "<div class='article_box'><a href='/Articles/%s'><img class='article_img' src='%s'><br>%s</a></div>" % (str(a['ArticleID']), str(a['img_url']),str(a['title']))])
-    print "sortList length = %s" % (len(sortList))
     if len(sortList)==0:
-        print "Nothing to see here"
         return "There are no articles"   
-    print "List = %s" % (sortList)
-    print "Debug1: %s" % (sortList[0])
-    print "Debug2: %s" % (sortList[1])
-    print "Debug3: %s" % (sortList[2])
-    
-    print "Sorted List (%s) = %s" % (orderBy,quickSort(sortList,orderBy))
     for a in quickSort(sortList,orderBy):
-        print 80*"="
-        print a
-        print 80*"="
         returnHTML += a[1]
     return returnHTML
 
-def getUserArticles(genre):
+def getUserArticles(genre, orderBy):
     returnHTML = ""
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
     whereStatement = ""
     if genre != None and genre != 0:
         whereStatement = "where genre = %s" % (genre)
-    print "Where statement: %s" % (genre)
     query = ("select ArticleID, title, img_url from UserArticles %s" % (whereStatement))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
+    if orderBy == None:
+        orderBy = "0"
+    sortList = []
     for a in cursor:
-        returnHTML += "<div class='article_box'><a href='/UserReviews/%s'><img class='article_img' src='%s'><br>%s</a></div>" % (str(a['ArticleID']), str(a['img_url']),str(a['title']))
-    if len(returnHTML) == 0:
-        returnHTML = "There are no articles"   
+        sortList.append([a['ArticleID'], "<div class='article_box'><a href='/UserReviews/%s'><img class='article_img' src='%s'><br>%s</a></div>" % (str(a['ArticleID']), str(a['img_url']),str(a['title']))])
+    if len(sortList)==0:
+        return "There are no articles"   
+    for a in quickSort(sortList,orderBy):
+        returnHTML += a[1]  
     return returnHTML
 
 def getArticleDetails(ArticleID):
@@ -288,15 +277,11 @@ def genreList(submit):
                 </select>''' % (submitText)
 
 def sortBy(currentSort):
-    print "Current Sort = %s" % (currentSort)
     submitText = 'onchange="this.form.submit()"'
     selectedItem=['','']
-    print "currentSort=%s" % (currentSort)
     if currentSort==None or currentSort=="0":
-        print "select 0"
         selectedItem[0]=" selected"
     else:
-        print "select 1"
         selectedItem[1]=" selected"
     return '''<label>Sort By</label>
                 <!--Labels the drop down box-->
@@ -305,6 +290,22 @@ def sortBy(currentSort):
                     <option value = "0"%s>Oldest to Newest</option>
                     <option value = "1"%s>Newest to Oldest</option>
                 </select>''' % (submitText,selectedItem[0],selectedItem[1])
+
+def encryptXOR(s, key="\x101Z"):
+    output = ""
+    for character in s:
+        for letter in key:
+            character = chr(ord(character) ^ ord(letter))
+        output += character
+    return output
+ 
+def decryptXOR(s, key="\x101Z"):
+    output = ""
+    for character in s:
+        for letter in key[::-1]:
+            character = chr(ord(character) ^ ord(letter))
+        output += character
+    return output
     
 @app.route("/")
 def main():
@@ -423,8 +424,7 @@ def createUserReviews():
 @app.route("/UserReviews", methods = ['GET', 'POST'])
 def userReviews():
     global linkList
-    print "Genre %s" % (request.form.get('genre'))
-    listUserArticles = getUserArticles(request.form.get('genre'))
+    listUserArticles = getUserArticles(request.form.get('genre'), request.form.get('orderBy'))
     pageContent = commonHeader()
     pageContent += headBar("User Reviews")
     pageContent +='''</ul> </nav> <p>
@@ -435,6 +435,15 @@ def userReviews():
         <!--Sets the title of the form-->
             <p>
                 %s
+            </p>
+        </fieldset>
+    </form>
+    <form action="/UserReviews" method="POST">
+    <!--Creates a form-->
+        <fieldset>
+        <legend>Filter Reviews</legend>
+        <!--Sets the title of the form-->
+            <p>
                 %s
             </p>
         </fieldset>
@@ -446,7 +455,7 @@ def userReviews():
     </form>
     </p>
     %s
-    </body> </html>''' % (genreList(True), sortBy(), listUserArticles)
+    </body> </html>''' % (genreList(True), sortBy(request.form.get('orderBy')), listUserArticles)
     return pageContent
 
 @app.route("/UserReviews/<articleID>")
