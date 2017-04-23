@@ -379,7 +379,7 @@ def createUserReviews():
         if errorMessage == "":
             createReview(request.form['title'], request.form['score'], request.form['body'], request.form['image'], request.form['genre'])
             return redirect(url_for('userReviews'))
-    listUserArticles = getUserArticles(request.form.get('genre'))
+    listUserArticles = getUserArticles(request.form.get('genre'), request.form.get('orderBy'))
     pageContent = commonHeader()
     pageContent += headBar("Create a Review")
     pageContent +='''</ul> </nav> <p>
@@ -480,7 +480,9 @@ def upcomingReleases():
 def contact():
     pageContent = commonHeader()
     pageContent += headBar("Contact")
-    pageContent +='''</ul> </nav>''' 
+    pageContent +='''</ul> </nav>
+    <form action="/Contact
+    </body> </html>''' 
     return pageContent
 
 @app.route("/Login", methods=['GET', 'POST'])
