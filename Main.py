@@ -1,4 +1,3 @@
-
 #Imports functions needed
 from flask import Flask, request, url_for, redirect, make_response
 from random import randint
@@ -136,7 +135,30 @@ def storeAccount(username, password):
     cursor = connection.cursor()
     cursor.execute(query)
 
-def getArticles(genre):
+def quickSort(data,orderBy):
+    higherList = []
+    lowerList = []
+    midpoint = len(data)/2
+    a = 0
+    while a < len(data):
+        if a == midpoint:
+            print "DEBUG: MIDPOINT %s, %s" % (a,midpoint)
+            pass
+        elif (orderBy=="0" and data[a][0] < data[midpoint][0]) or (orderBy=="1" and data[a][0] > data[midpoint][0]):
+            print "To Lower: Order By: %s; data[%s][0] = '%s'; data[%s][0] = '%s'" % (orderBy,a,data[a][0],midpoint,data[midpoint][0])
+            lowerList.append(data[a])
+        else:
+            print "To Higher: Order By: %s; data[%s][0] = '%s'; data[%s][0] = '%s'" % (orderBy,a,data[a][0],midpoint,data[midpoint][0])
+            higherList.append(data[a])
+        a += 1
+    if len(lowerList) > 1:
+        lowerList = quickSort(lowerList,orderBy)
+    if len(higherList) > 1:
+        higherList = quickSort(higherList,orderBy)
+    lowerList.append(data[midpoint])
+    return lowerList + higherList
+    
+def getArticles(genre, orderBy):
     returnHTML = ""
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
     whereStatement = ""
@@ -145,10 +167,26 @@ def getArticles(genre):
     query = ("select ArticleID, title, img_url from articles %s" % (whereStatement))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
+    if orderBy == None:
+        orderBy = "0"
+    sortList = []
     for a in cursor:
-        returnHTML += "<div class='article_box'><a href='/Articles/%s'><img class='article_img' src='%s'><br>%s</a></div>" % (str(a['ArticleID']), str(a['img_url']),str(a['title']))
-    if len(returnHTML) == 0:
-        returnHTML = "There are no articles"   
+        sortList.append([a['ArticleID'], "<div class='article_box'><a href='/Articles/%s'><img class='article_img' src='%s'><br>%s</a></div>" % (str(a['ArticleID']), str(a['img_url']),str(a['title']))])
+    print "sortList length = %s" % (len(sortList))
+    if len(sortList)==0:
+        print "Nothing to see here"
+        return "There are no articles"   
+    print "List = %s" % (sortList)
+    print "Debug1: %s" % (sortList[0])
+    print "Debug2: %s" % (sortList[1])
+    print "Debug3: %s" % (sortList[2])
+    
+    print "Sorted List (%s) = %s" % (orderBy,quickSort(sortList,orderBy))
+    for a in quickSort(sortList,orderBy):
+        print 80*"="
+        print a
+        print 80*"="
+        returnHTML += a[1]
     return returnHTML
 
 def getUserArticles(genre):
@@ -248,10 +286,30 @@ def genreList(submit):
                     <option value = "10">Shooter</option>
                     <option value = "11">Co-op</option>
                 </select>''' % (submitText)
+
+def sortBy(currentSort):
+    print "Current Sort = %s" % (currentSort)
+    submitText = 'onchange="this.form.submit()"'
+    selectedItem=['','']
+    print "currentSort=%s" % (currentSort)
+    if currentSort==None or currentSort=="0":
+        print "select 0"
+        selectedItem[0]=" selected"
+    else:
+        print "select 1"
+        selectedItem[1]=" selected"
+    return '''<label>Sort By</label>
+                <!--Labels the drop down box-->
+                <select name="orderBy" id = "orderBy" %s>
+                <!--Creates the list of things to display in the drop down box-->
+                    <option value = "0"%s>Oldest to Newest</option>
+                    <option value = "1"%s>Newest to Oldest</option>
+                </select>''' % (submitText,selectedItem[0],selectedItem[1])
     
 @app.route("/")
 def main():
     global linkList
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
     loginHTML = ""
     if 'secretNum' in request.cookies:
         secretNum = request.cookies.get('secretNum')
@@ -282,9 +340,7 @@ def articleDetails(articleID):
 @app.route("/Articles", methods = ['GET', 'POST'])
 def articles():
     global linkList
-    listArticles = getArticles(request.form.get('genre'))
-    #if request.method=='POST':
-     #   listArticles+="<BR>select = %s<BR>" % (request.form.get('genre'))
+    listArticles = getArticles(request.form.get('genre'), request.form.get('orderBy'))
     pageContent = commonHeader()
     pageContent += headBar("Articles")
     pageContent +='''</ul> </nav> <p>
@@ -298,9 +354,19 @@ def articles():
             </p>
         </fieldset>
     </form>
+    <form action="/Articles" method="POST">
+    <!--Creates a form-->
+        <fieldset>
+        <legend>Filter Reviews</legend>
+        <!--Sets the title of the form-->
+            <p>
+                %s
+            </p>
+        </fieldset>
+    </form>
     </p>
     %s
-    </body> </html>''' % (genreList(True), listArticles)
+    </body> </html>''' % (genreList(True), sortBy(request.form.get('orderBy')), listArticles)
     return pageContent
 
 @app.route("/CreateUserReview", methods = ['GET', 'POST'])
@@ -369,6 +435,7 @@ def userReviews():
         <!--Sets the title of the form-->
             <p>
                 %s
+                %s
             </p>
         </fieldset>
     </form>
@@ -379,7 +446,7 @@ def userReviews():
     </form>
     </p>
     %s
-    </body> </html>''' % (genreList(True), listUserArticles)
+    </body> </html>''' % (genreList(True), sortBy(), listUserArticles)
     return pageContent
 
 @app.route("/UserReviews/<articleID>")
