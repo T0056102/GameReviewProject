@@ -2,8 +2,10 @@
 from flask import Flask, request, url_for, redirect, make_response
 from random import randint
 from subprocess import call
+from email.mime.text import MIMEText
 import sys
 import mysql.connector
+import smtplib
 
 app = Flask(__name__)
 
@@ -306,6 +308,18 @@ def decryptXOR(s, key="\x101Z"):
             character = chr(ord(character) ^ ord(letter))
         output += character
     return output
+
+def sendEmail(message):
+    msg = MIMEText(message)
+    msg['Subject'] = "subject"
+    msg['From'] = "t0056102@cardinalnewman.ac.uk"
+#    msg['To'] = "therobster1000@gmail.com"
+    msg['To'] = "ian@xeon"
+
+    s = smtplib.SMTP('192.168.0.109')
+    s.sendmail(msg['From'], [msg['To']], msg.as_string())
+    s.quit()
+    return 
     
 @app.route("/")
 def main():
@@ -476,12 +490,25 @@ def upcomingReleases():
     </p> </body> </html>''' % (getUpcoming())
     return pageContent
 
-@app.route("/Contact")
+@app.route("/Contact", methods=['GET', 'POST'])
 def contact():
+    if request.method == 'POST':
+        sendEmail(request.form['message'])
+        return(redirect(url_for("main")))
     pageContent = commonHeader()
     pageContent += headBar("Contact")
     pageContent +='''</ul> </nav>
-    <form action="/Contact
+    <form action="/Contact" method = POST>
+    <div class="container">
+        <label><b>Enter your message here</b></label>
+        <input type="text"
+        placeholder="Enter message" 
+        name="message" 
+        required>
+        <button type="submit">Send</button>
+        <!--Creates the button that will send the email-->
+    </div>
+    </form>
     </body> </html>''' 
     return pageContent
 
