@@ -21,7 +21,7 @@ def createDatabase():
             query = ("use GameReview;")
             cursor = connection.cursor()
             cursor.execute(query)
-            query = ("create table UserDetails (username varchar(32), password varchar(32), cookie varchar(32));")
+            query = ("create table UserDetails (username varchar(32), password varchar(32), cookie varchar(32), email varchar(256));")
             cursor = connection.cursor()
             cursor.execute(query)
             query = ("create table articles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), body text, score decimal(3,1), genre decimal(2,0), PRIMARY KEY (ArticleID));")
@@ -125,11 +125,11 @@ def loginExists(username):
         return True
     return False
 
-def storeAccount(username, password):
+def storeAccount(username, password, email):
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
-    query = ("insert into UserDetails (username, password) values (%s, %s)")
+    query = ("insert into UserDetails (username, password, email) values (%s, %s, %s)")
     cursor = connection.cursor()
-    cursor.execute(query,(username, encryptXOR(str(password))))
+    cursor.execute(query,(username, encryptXOR(str(password)), email))
     query = ("commit")
     cursor = connection.cursor()
     cursor.execute(query)
@@ -549,7 +549,7 @@ def createAccount():
             if request.form['password1'] != request.form['password2']:
                 falseCreate = "passwords do not match"
             else:
-                storeAccount(request.form['username'], request.form['password1'])
+                storeAccount(request.form['username'], request.form['password1'], request.form['email'])
                 return(redirect(url_for("login")))
     pageContent = commonHeader()
     pageContent += headBar("Create Account")
@@ -591,6 +591,17 @@ def createAccount():
         <!--[input type="password"] Sets the data type to password so it will be hidden
         [placeholder="Enter Password"] sets the placeholder text to be "Enter Password"
         [name="password2"] names the box "password2"
+        [required] makes the data requires-->
+
+        <label><b>E-Mail</b></label>
+        <!--Labels the email box-->
+        <input type="text" 
+        placeholder="Enter E-Mail" 
+        name="email" 
+        required>
+        <!--[input type="text"] Sets the data type to be text
+        [placeholder="Enter E-Mail"] sets the placeholder text to be "Enter E-Mail"
+        [name="email"] names the box "email"
         [required] makes the data requires-->
 
         <button type="submit">Create</button>
