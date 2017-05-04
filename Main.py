@@ -246,7 +246,7 @@ def getUpcoming():
     returnHTML = "<table><tr><td>Date</td><td>Title</td><td>Platforms</td></tr>"
     upcomingFound = False
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
-    query = ("select title, platforms, date from upcomingreleases")
+    query = ("select title, platforms, date from UpcomingReleases")
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     for a in cursor:
