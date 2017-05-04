@@ -314,7 +314,7 @@ def sendEmail(message):
     msg['Subject'] = "subject"
     msg['From'] = "t0056102@cardinalnewman.ac.uk"
 #    msg['To'] = "therobster1000@gmail.com"
-    msg['To'] = "ian@xeon"
+    msg['To'] = "robert@dev.ellisbs.co.uk"
 
     s = smtplib.SMTP('192.168.0.109')
     s.sendmail(msg['From'], [msg['To']], msg.as_string())
