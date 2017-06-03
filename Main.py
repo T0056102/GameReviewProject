@@ -26,10 +26,10 @@ def createDatabase():
             query = ("create table UserDetails (username varchar(32), password varchar(32), cookie varchar(32), email varchar(256));")
             cursor = connection.cursor()
             cursor.execute(query)
-            query = ("create table articles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), body text, score decimal(3,1), genre decimal(2,0), PRIMARY KEY (ArticleID));")
+            query = ("create table articles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), video_url varchar(256), body text, score decimal(3,1), genre decimal(2,0), PRIMARY KEY (ArticleID));")
             cursor = connection.cursor()
             cursor.execute(query)
-            query = ("create table UserArticles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), body text, score decimal(3,1), genre decimal(2,0),PRIMARY KEY (ArticleID));")
+            query = ("create table UserArticles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), video_url varchar(256), body text, score decimal(3,1), genre decimal(2,0),PRIMARY KEY (ArticleID));")
             cursor = connection.cursor()
             cursor.execute(query)
             query = ("create table UpcomingReleases (title varchar(256), platforms varchar(256), date varchar(8));")
@@ -163,14 +163,14 @@ def getArticles(genre, orderBy):
     whereStatement = ""
     if genre != None and genre != 0:
         whereStatement = "where genre = %s" % (genre)
-    query = ("select ArticleID, title, img_url from articles %s" % (whereStatement))
+    query = ("select ArticleID, title, img_url, video_url from articles %s" % (whereStatement))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     if orderBy == None:
         orderBy = "0"
     sortList = []
     for a in cursor:
-        sortList.append([a['ArticleID'], "<div class='article_box'><a href='/Articles/%s'><img class='article_img' src='%s'><br>%s</a></div>" % (str(a['ArticleID']), str(a['img_url']),str(a['title']))])
+        sortList.append([a['ArticleID'], "<div class='article_box'><a href='/Articles/%s'><img class='article_img' src='%s'><br>%s</a></div>" % (str(a['ArticleID']), str(a['img_url']), str(a['video_url']),str(a['title']))])
     if len(sortList)==0:
         return "There are no articles"   
     for a in quickSort(sortList,orderBy):
@@ -183,7 +183,7 @@ def getUserArticles(genre, orderBy):
     whereStatement = ""
     if genre != None and genre != 0:
         whereStatement = "where genre = %s" % (genre)
-    query = ("select ArticleID, title, img_url from UserArticles %s" % (whereStatement))
+    query = ("select ArticleID, title, img_url, video_url from UserArticles %s" % (whereStatement))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     if orderBy == None:
@@ -199,21 +199,21 @@ def getUserArticles(genre, orderBy):
 
 def getArticleDetails(ArticleID):
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
-    query = ("select ArticleID, title, img_url, body, score from articles where ArticleID = '%s'" % (ArticleID))
+    query = ("select ArticleID, title, img_url, video_url, body, score from articles where ArticleID = '%s'" % (ArticleID))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     for a in cursor:
-        return "<h1>%s</h1><img src='%s'><p>%s</p><p>%s</p>" % (str(a['title']), str(a['img_url']), str(a['body']), str(a['score']))
+        return "<h1>%s</h1><img src='%s'><p>%s</p><p>%s</p>" % (str(a['title']), str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
 
 def getUserArticleDetails(ArticleID):
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
-    query = ("select ArticleID, title, img_url, body, score from UserArticles where ArticleID = '%s'" % (ArticleID))
+    query = ("select ArticleID, title, img_url, video_url, body, score from UserArticles where ArticleID = '%s'" % (ArticleID))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     for a in cursor:
-        return "<h1>%s</h1><img src='%s'><p>%s</p><p>%s</p>" % (str(a['title']), str(a['img_url']), str(a['body']), str(a['score']))
+        return "<h1>%s</h1><img src='%s'><p>%s</p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
 
-def checkCreate(title, score, body, image):
+def checkCreate(title, score, body, image, video):
     if title == "":
         return "you must enter a title"
     if len(title)>256:
@@ -231,14 +231,18 @@ def checkCreate(title, score, body, image):
     if image == "":
         return "you must enter an image URL"
     if len(image) >256:
-        return "Image url must beat most 256 characters long"
+        return "Image URL must beat most 256 characters long"
+    if video == "":
+        return "You must enter a video URL"
+    if len(video) >256:
+        return "Video URL must be at most 256 characters long"
     return ""
 
-def createReview(title, score, body, image, genre):
+def createReview(title, score, body, image, video, genre):
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
-    query = ("insert into UserArticles (title, img_url, body, score, genre) values (%s, %s, %s, %s, %s)")
+    query = ("insert into UserArticles (title, img_url, video_url, body, score, genre) values (%s, %s, %s, %s, %s, %s)")
     cursor = connection.cursor()
-    cursor.execute(query,(title, image, body, score, genre))
+    cursor.execute(query,(title, image, video, body, score, genre))
     query = ("commit")
     cursor = connection.cursor()
     cursor.execute(query)
@@ -390,9 +394,9 @@ def createUserReviews():
     global linkList
     errorMessage = ""
     if request.method == 'POST':
-        errorMessage = checkCreate(request.form['title'], request.form['score'], request.form['body'], request.form['image'])
+        errorMessage = checkCreate(request.form['title'], request.form['score'], request.form['body'], request.form['image'], request.form['video'])
         if errorMessage == "":
-            createReview(request.form['title'], request.form['score'], request.form['body'], request.form['image'], request.form['genre'])
+            createReview(request.form['title'], request.form['score'], request.form['body'], request.form['image'], request.form['video'], request.form['genre'])
             return redirect(url_for('userReviews'))
     listUserArticles = getUserArticles(request.form.get('genre'), request.form.get('orderBy'))
     pageContent = commonHeader()
@@ -424,6 +428,12 @@ def createUserReviews():
             <input type="text" 
             placeholder="Enter Image URL" 
             name="image" 
+            required>
+            <label><b>Video</b></label>
+            <!--Labels the video box-->
+            <input type="text" 
+            placeholder="Enter Video URL" 
+            name="video" 
             required>
             <label><b>Genre</b></label>
             %s
