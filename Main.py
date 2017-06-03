@@ -38,7 +38,8 @@ def createDatabase():
             query = ("commit;")
             cursor = connection.cursor()
             cursor.execute(query)
-        except:
+        except Exception, e:
+            print(e)
             sys.exit(-1)
 
 #Sets up the list of links that will be on the bar at the top
