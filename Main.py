@@ -118,6 +118,17 @@ def getUserBySecret(secretNumber):
         return True
     return False
 
+#Defines the function that will log the user out
+def logUserOut(secretNumber):
+    #Connects to the database
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    query = ('update UserDetails set cookie = "" where cookie = "%s"' % (secretNumber))
+    cursor = connection.cursor()
+    cursor.execute(query)
+    query = ("commit")
+    cursor = connection.cursor()
+    cursor.execute(query)
+
 def loginExists(username):
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
     query = ('select username from UserDetails where username = "%s"' % (username))
@@ -537,8 +548,14 @@ def login():
             response = make_response(redirect(url_for("main")))
             response.set_cookie('secretNum', cookieNum)
             updateUserCookie(request.form["username"], cookieNum)
+            linkList[5][1] = "Logout"
             return response
         falseLogin = "Your login details were incorrect"
+    if 'secretNum' in request.cookies:
+        secretNum = request.cookies.get('secretNum')
+        if getUserBySecret(secretNum) == True:
+            logUserOut (secretNum)
+            linkList[5][1] = "Login"
     pageContent = commonHeader()
     pageContent += headBar("Login")
     pageContent +='''</ul> </nav> <p>
