@@ -452,6 +452,12 @@ def userReviews():
     listUserArticles = getUserArticles(request.form.get('genre'), request.form.get('orderBy'))
     pageContent = commonHeader()
     pageContent += headBar("User Reviews")
+    displayButton = ""
+    if 'secretNum' in request.cookies:
+        secretNum = request.cookies.get('secretNum')
+        if getUserBySecret(secretNum) == True:
+            displayButton = '''<form action="/CreateUserReview" method = GET>
+                            <button type="submit">Create article</button>'''
     pageContent +='''</ul> </nav> <p>
     <form action="/UserReviews" method="POST">
     <!--Creates a form-->
@@ -475,12 +481,11 @@ def userReviews():
     </form>
     </p>
     <p>
-    <form action="/CreateUserReview" method = GET>
-    <button type="submit">Create article</button>
+    %s
     </form>
     </p>
     %s
-    </body> </html>''' % (genreList(True), sortBy(request.form.get('orderBy')), listUserArticles)
+    </body> </html>''' % (genreList(True), sortBy(request.form.get('orderBy')), displayButton, listUserArticles)
     return pageContent
 
 @app.route("/UserReviews/<articleID>")
