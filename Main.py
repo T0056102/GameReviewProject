@@ -211,7 +211,7 @@ def getUserArticleDetails(ArticleID):
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     for a in cursor:
-        return "<h1>%s</h1><img src='%s'><p><embed width='420' height='315' src='%s'></p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
+        return "<h1>%s</h1><img src='%s'><p><iframe width='420' height='315' src='%s'></iframe></p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
 
 def checkCreate(title, score, body, image, video):
     if title == "":
