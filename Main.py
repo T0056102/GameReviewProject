@@ -26,10 +26,10 @@ def createDatabase():
             query = ("create table UserDetails (username varchar(32), password varchar(32), cookie varchar(32), email varchar(256));")
             cursor = connection.cursor()
             cursor.execute(query)
-            query = ("create table articles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), video_url varchar(256), body text, score decimal(3,1), genre decimal(2,0), PRIMARY KEY (ArticleID));")
+            query = ("create table articles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), video_url varchar(256), body text, score decimal(3,1), genre decimal(2,0), rating decimal(2,0), PRIMARY KEY (ArticleID));")
             cursor = connection.cursor()
             cursor.execute(query)
-            query = ("create table UserArticles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), video_url varchar(256), body text, score decimal(3,1), genre decimal(2,0),PRIMARY KEY (ArticleID));")
+            query = ("create table UserArticles (ArticleID mediumint not null auto_increment, title varchar(256), img_url varchar(256), video_url varchar(256), body text, score decimal(3,1), genre decimal(2,0), rating decimal(2,0), PRIMARY KEY (ArticleID));")
             cursor = connection.cursor()
             cursor.execute(query)
             query = ("create table UpcomingReleases (title varchar(256), platforms varchar(256), date varchar(8));")
@@ -214,15 +214,15 @@ def getArticleDetails(ArticleID):
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     for a in cursor:
-        return "<h1>%s</h1><img src='%s'><p>%s</p><p>%s</p>" % (str(a['title']), str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
+        return "<h1>%s</h1><p>%s</p><img src='%s'><p>%s</p><p>%s</p>" % (str(a['title']), str(a['rating']), str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
 
 def getUserArticleDetails(ArticleID):
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
-    query = ("select ArticleID, title, img_url, video_url, body, score from UserArticles where ArticleID = '%s'" % (ArticleID))
+    query = ("select ArticleID, title, rating, img_url, video_url, body, score from UserArticles where ArticleID = '%s'" % (ArticleID))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     for a in cursor:
-        return "<h1>%s</h1><img src='%s'><p><iframe width='420' height='315' src='%s'></iframe></p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
+        return "<h1>%s</h1><p>%s</p><img src='%s'><p><iframe width='420' height='315' src='%s'></iframe></p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['rating']), str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
 
 def checkCreate(title, score, body, image, video):
     if title == "":
@@ -251,7 +251,7 @@ def checkCreate(title, score, body, image, video):
 
 def createReview(title, score, body, image, video, genre):
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
-    query = ("insert into UserArticles (title, img_url, video_url, body, score, genre) values (%s, %s, %s, %s, %s, %s)")
+    query = ("insert into UserArticles (title, img_url, video_url, body, score, genre, rating) values (%s, %s, %s, %s, %s, %s, '0')")
     cursor = connection.cursor()
     cursor.execute(query,(title, image, video, body, score, genre))
     query = ("commit")
