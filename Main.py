@@ -7,6 +7,7 @@ import sys
 import mysql.connector
 import smtplib
 import base64
+from email import message
 
 app = Flask(__name__)
 
@@ -381,15 +382,21 @@ def decryptXOR(s, key="\x101Z"):
     return output
 
 #Defines the function that will send an email to the administrator
-def sendEmail(message):
-    msg = MIMEText(message)
-    msg['Subject'] = "subject"
-    msg['From'] = "t0056102@cardinalnewman.ac.uk"
-    msg['To'] = "fenrir.reviews@gmail.com"
+def sendEmail(mail_message):
+#    msg = MIMEText(message)
+#    msg['Subject'] = "subject"
+#    msg['From'] = "t0056102@cardinalnewman.ac.uk"
+#    msg['To'] = "fenrir.reviews@gmail.com"
 
+    msg = message.Message()
+    msg.add_header('from','t0056102@cardinalnewman.ac.uk')
+    msg.add_header('to','fenrir.reviews@gmail.com')
+    msg.add_header('subject', 't0056102@cardinalnewman.ac.uk')
+    msg.set_payload(mail_message)
+    
     s = smtplib.SMTP_SSL('smtp.gmail.com')
-    s.login(msg['To'], base64.b64decode('UGE1NXdvcmQxIQ=='))
-    s.sendmail(msg['From'], [msg['To']], msg.as_string())
+    s.login("fenrir.reviews@gmail.com", base64.b64decode('UGE1NXdvcmQxIQ=='))
+    s.sendmail("t0056102@cardinalnewman.ac.uk", ["fenrir.reviews@gmail.com"], msg.as_string())
     s.quit()
     return 
 
