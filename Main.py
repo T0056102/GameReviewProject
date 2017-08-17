@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 import sys
 import mysql.connector
 import smtplib
+import base64
 
 app = Flask(__name__)
 
@@ -384,10 +385,10 @@ def sendEmail(message):
     msg = MIMEText(message)
     msg['Subject'] = "subject"
     msg['From'] = "t0056102@cardinalnewman.ac.uk"
-#    msg['To'] = "therobster1000@gmail.com"
-    msg['To'] = "robert@dev.ellisbs.co.uk"
+    msg['To'] = "fenrir.reviews@gmail.com"
 
-    s = smtplib.SMTP('192.168.0.109')
+    s = smtplib.SMTP_SSL('smtp.gmail.com')
+    s.login(msg['To'], base64.b64decode('UGE1NXdvcmQxIQ=='))
     s.sendmail(msg['From'], [msg['To']], msg.as_string())
     s.quit()
     return 
