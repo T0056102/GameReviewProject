@@ -130,6 +130,17 @@ def getUserBySecret(secretNumber):
         return True
     return False
 
+def getMailBySecret(secretNumber):
+    #Connects to the database
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    query = ('select email from UserDetails where cookie = "%s"' % (secretNumber))
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(query)
+    retMail=''
+    for a in cursor:
+        retMail=a['email']
+    return retMail
+
 #Defines the function that will log the user out
 def logUserOut(secretNumber):
     #Connects to the database
@@ -382,21 +393,16 @@ def decryptXOR(s, key="\x101Z"):
     return output
 
 #Defines the function that will send an email to the administrator
-def sendEmail(mail_message):
-#    msg = MIMEText(message)
-#    msg['Subject'] = "subject"
-#    msg['From'] = "t0056102@cardinalnewman.ac.uk"
-#    msg['To'] = "fenrir.reviews@gmail.com"
-
+def sendEmail(mail_from, mail_message):
     msg = message.Message()
-    msg.add_header('from','t0056102@cardinalnewman.ac.uk')
+    msg.add_header('from',mail_from)
     msg.add_header('to','fenrir.reviews@gmail.com')
-    msg.add_header('subject', 't0056102@cardinalnewman.ac.uk')
+    msg.add_header('subject', mail_from)
     msg.set_payload(mail_message)
     
     s = smtplib.SMTP_SSL('smtp.gmail.com')
     s.login("fenrir.reviews@gmail.com", base64.b64decode('UGE1NXdvcmQxIQ=='))
-    s.sendmail("t0056102@cardinalnewman.ac.uk", ["fenrir.reviews@gmail.com"], msg.as_string())
+    s.sendmail(mail_from, ["fenrir.reviews@gmail.com"], msg.as_string())
     s.quit()
     return 
 
@@ -628,11 +634,16 @@ def upcomingReleases():
 def contact():
     #Sends the email and redirects to the main page
     if request.method == 'POST':
-        sendEmail(request.form['message'])
+        sendEmail(getMailBySecret(request.cookies.get('secretNum')), request.form['message'])
         return(redirect(url_for("main")))
     pageContent = commonHeader()
     #Sets the title at the top of the page to be "Contact"
     pageContent += headBar("Contact")
+    displayButton = ''
+    if 'secretNum' in request.cookies:
+        secretNum = request.cookies.get('secretNum')
+        if getUserBySecret(secretNum) == True:
+            displayButton = '<button type="submit">Send</button>'
     #Formats the contact form
     pageContent +='''</ul> </nav>
     <form action="/Contact" method = POST>
@@ -642,11 +653,11 @@ def contact():
         placeholder="Enter message" 
         name="message" 
         required>
-        <button type="submit">Send</button>
+        %s
         <!--Creates the button that will send the email-->
     </div>
     </form>
-    </body> </html>''' 
+    </body> </html>''' %(displayButton) 
     return pageContent
 
 #Sets the page to display when /Login is at the end of the URL
