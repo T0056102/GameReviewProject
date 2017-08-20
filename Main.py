@@ -216,7 +216,7 @@ def getArticles(genre, orderBy):
         orderBy = "0"
     sortList = []
     for a in cursor:
-        sortList.append([a['ArticleID'], "<div class='article_box'><a href='/Articles/%s'><img class='article_img' src='%s'><br>%s</a></div>" % (str(a['ArticleID']), str(a['img_url']), str(a['video_url']),str(a['title']))])
+        sortList.append([a['ArticleID'], "<div class='article_box'><a href='/Articles/%s'><img class='article_img' src='%s'><br>%s</a></div>" % (str(a['ArticleID']), str(a['img_url']), str(a['title']))])
     if len(sortList)==0:
         return "There are no articles"   
     for a in quickSort(sortList,orderBy):
@@ -251,12 +251,12 @@ def getUserArticles(genre, orderBy):
 def getArticleDetails(ArticleID):
     #Connects to the database
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
-    query = ("select ArticleID, title, img_url, video_url, body, score from articles where ArticleID = '%s'" % (ArticleID))
+    query = ("select ArticleID, title, img_url, video_url, body, score, (select sum(rating) from articlerating where ArticleID = '%s' and rating > 0) as ratingP, (select sum(rating) from articlerating where ArticleID = '%s' and rating < 0) as ratingN from articles where ArticleID = '%s'" % (ArticleID, ArticleID, ArticleID))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     #Uses a acursor to fetch the data and place it in this format
     for a in cursor:
-        return "<h1>%s</h1><p>%s</p><img src='%s'><p>%s</p><p>%s</p>" % (str(a['title']), str(a['rating']), str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
+        return "<h1>%s</h1><p>%s/%s</p><img src='%s'><p>%s</p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['ratingP']), str(a['ratingN']), str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
 
 #Defines the function that will fetch the details of the user articles from the database
 def getUserArticleDetails(ArticleID):
