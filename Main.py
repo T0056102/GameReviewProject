@@ -254,9 +254,13 @@ def getArticleDetails(ArticleID):
     query = ("select ArticleID, title, img_url, video_url, body, score, (select sum(rating) from articlerating where ArticleID = '%s' and rating > 0) as ratingP, (select sum(rating) from articlerating where ArticleID = '%s' and rating < 0) as ratingN from articles where ArticleID = '%s'" % (ArticleID, ArticleID, ArticleID))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
+#    posRating = (str(a['ratingP']))
+#    negRating = (str(a['ratingN']))
     #Uses a acursor to fetch the data and place it in this format
     for a in cursor:
-        return "<h1>%s</h1><p>%s/%s</p><img src='%s'><p>%s</p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['ratingP']), str(a['ratingN']), str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
+#        if negRating == "None":
+#            negRating = "0"
+        return "<h1>%s</h1><p>%s/%s</p><img src='http://i.imgur.com/bO65jyy.png' style='width:20px;height:20px;'><img src='http://i.imgur.com/Y3NyN1O.png' style='width:20px;height:20px;'><p><img src='%s'></p><p>%s</p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['ratingP']), str(a['ratingN']), str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
 
 #Defines the function that will fetch the details of the user articles from the database
 def getUserArticleDetails(ArticleID):
