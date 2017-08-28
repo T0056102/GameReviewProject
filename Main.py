@@ -130,6 +130,17 @@ def getUserBySecret(secretNumber):
         return True
     return False
 
+def getUsernameBySecret(secretNumber):
+    #Connects to the database
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    query = ('select username from UserDetails where cookie = "%s"' % (secretNumber))
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(query)
+    retUsername=''
+    for a in cursor:
+        retUsername=a['username']
+    return retUsername
+
 def getMailBySecret(secretNumber):
     #Connects to the database
     connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
@@ -260,7 +271,14 @@ def getArticleDetails(ArticleID):
     for a in cursor:
 #        if negRating == "None":
 #            negRating = "0"
-        return "<h1>%s</h1><p>%s/%s</p><img src='http://i.imgur.com/bO65jyy.png' style='width:20px;height:20px;'><img src='http://i.imgur.com/Y3NyN1O.png' style='width:20px;height:20px;'><p><img src='%s'></p><p>%s</p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['ratingP']), str(a['ratingN']), str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
+        anchorAdd = ""
+        anchorSub = ""
+        anchorFin = ""
+        if userLoggedIn():
+            anchorAdd = "<A href=/Articles/AddVote/%s/%s>" % (ArticleID, getUsernameBySecret(request.cookies.get('secretNum')))
+            anchorSub = "<A href=/Articles/SubVote/%s/%s>" % (ArticleID, getUsernameBySecret(request.cookies.get('secretNum')))
+            anchorFin = "</A>"
+        return "<h1>%s</h1><p>%s/%s</p>%s<img src=/static/Up2.png>%s%s<img src=/static/Down2.png>%s<p><img src='%s'></p><p>%s</p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['ratingP']), str(a['ratingN']), anchorAdd, anchorFin, anchorSub, anchorFin, str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
 
 #Defines the function that will fetch the details of the user articles from the database
 def getUserArticleDetails(ArticleID):
@@ -410,6 +428,37 @@ def sendEmail(mail_from, mail_message):
     s.quit()
     return 
 
+def userLoggedIn():
+    loggedIn = False
+    if 'secretNum' in request.cookies:
+        secretNum = request.cookies.get('secretNum')
+        if getUserBySecret(secretNum) == True:
+            loggedIn = True
+    return loggedIn
+
+def changeVote(username, articleID, changeValue):
+    #make sure articlerating record exists for this username and articleID
+    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    query = ('select username from articlerating where username = "%s" and ArticleID = "%s"' % (username, articleID))
+    cursor = connection.cursor()
+    cursor.execute(query)
+    cursor.fetchall()
+    if cursor.rowcount < 1:
+        #If not create one with a 0 rating
+        query = ("insert into articlerating (username, ArticleID, rating) values (%s, %s, 0)")
+        cursor = connection.cursor()
+        cursor.execute(query,(username, articleID))
+        query = ("commit")
+        cursor = connection.cursor()
+        cursor.execute(query)
+    #update articlerating with changed value
+    query = ('update articlerating set rating = "%s" where username = "%s" and ArticleID = "%s"' % (changeValue, username, articleID))
+    cursor = connection.cursor()
+    cursor.execute(query)
+    query = ("commit")
+    cursor = connection.cursor()
+    cursor.execute(query)
+
 #Sets this paige to  be the default  
 @app.route("/")
 #Creates the main page of the website
@@ -454,6 +503,22 @@ def articleDetails(articleID):
     pageContent +='''</ul> </nav> <p>%s</p>''' % (articleDetails)
     return pageContent
 
+@app.route("/Articles/AddVote/<articleID>/<username>", methods = ['GET'])
+def voteAdd(articleID, username):
+    global linkList
+    if not userLoggedIn():
+        return redirect(url_for('main'))
+    changeVote(username, articleID, 1)
+    return redirect(url_for('articleDetails',articleID=articleID))
+
+@app.route("/Articles/SubVote/<articleID>/<username>", methods = ['GET'])
+def voteSub(articleID, username):
+    global linkList
+    if not userLoggedIn():
+        return redirect(url_for('main'))
+    changeVote(username, articleID, -1)
+    return redirect(url_for('articleDetails',articleID=articleID))
+    
 #Sets the page to display when /Articles is at the end of the URL
 @app.route("/Articles", methods = ['GET', 'POST'])
 #Creates the page where the list of articles is displayed
