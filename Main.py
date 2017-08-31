@@ -279,7 +279,8 @@ def getArticleDetails(ArticleID):
             anchorFin = "</A>"
         return '''<h1 class='article_title'>%s</h1>
                   <div class='article_rating'><p>%s<img src=/static/Up2.png>%s%s/%s%s<img src=/static/Down2.png>%s</p></div>
-                  <p><img src='%s'></p><p><iframe src=%s></iframe></p><p>%s</p><p>%s</p>'''% (str(a['title']),
+                  <div class='article_media'><p><img src='%s'></p><p><iframe src=%s></iframe></p></div>
+                  <p>%s</p><p>%s</p>'''% (str(a['title']),
                                                                         anchorAdd,
                                                                         anchorFin,
                                                                         str(a['ratingP'] or "0"),
@@ -287,8 +288,8 @@ def getArticleDetails(ArticleID):
                                                                         anchorSub, anchorFin,
                                                                         str(a['img_url']),
                                                                         str(a['video_url']),
-                                                                        str(a['body']),
-                                                                        str(a['score']))
+                                                                        str(a['score']),
+                                                                        str(a['body']))
 
 #Defines the function that will fetch the details of the user articles from the database
 def getUserArticleDetails(ArticleID):
@@ -308,7 +309,8 @@ def getUserArticleDetails(ArticleID):
             anchorFin = "</A>"
         return '''<h1 class='article_title'>%s</h1>
                 <div class='article_rating'><p>%s<img src=/static/Up2.png>%s%s/%s%s<img src=/static/Down2.png>%s</p></div>
-                <p><img src='%s'></p><p><iframe src=%s></iframe></p><p>%s</p><p>%s</p>''' % (str(a['title']),
+                <div class='article_media'><p><img src='%s'></p><p><iframe src=%s></iframe></p></div>
+                <p>%s</p><p>%s</p>''' % (str(a['title']),
                                                                        anchorAdd,
                                                                        anchorFin,
                                                                        str(a['ratingP'] or "0"),
@@ -317,8 +319,8 @@ def getUserArticleDetails(ArticleID):
                                                                        anchorFin,
                                                                        str(a['img_url']),
                                                                        str(a['video_url']),
-                                                                       str(a['body']),
-                                                                       str(a['score']))
+                                                                       str(a['score']),
+                                                                       str(a['body']))
 
 #Defines the function that will validate the details entered by a user when they are creating an article
 def checkCreate(title, score, body, image, video):

@@ -43,3 +43,22 @@ li a:hover { background-color: #BB8FCE; }
   font-size: 2vw;	
 }
 
+.article_media {
+  position: fixed;
+  display: inline-block;
+  width: 35%;
+  height: 50%;
+  font-size: 2vw;
+  line-height: 200%;
+  border: 3px solid #4A3F3B;
+  background-color: #FFFFFF;
+  text-align: center;
+  -moz-user-select: -moz-none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  border-radius: 25px;	
+  right: 10px;
+}
+
