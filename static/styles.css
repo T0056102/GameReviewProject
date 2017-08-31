@@ -34,3 +34,12 @@ li a:hover { background-color: #BB8FCE; }
   max-width: 400px;
   max-height: 180px;
 }
+
+.article_title {
+  font-size: 4vw;  
+} 
+
+.article_rating {
+  font-size: 2vw;	
+}
+

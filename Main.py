@@ -277,7 +277,18 @@ def getArticleDetails(ArticleID):
             anchorAdd = "<A href=/Articles/AddVote/%s/%s>" % (ArticleID, getUsernameBySecret(request.cookies.get('secretNum')))
             anchorSub = "<A href=/Articles/SubVote/%s/%s>" % (ArticleID, getUsernameBySecret(request.cookies.get('secretNum')))
             anchorFin = "</A>"
-        return "<h1>%s</h1><p>%s/%s</p>%s<img src=/static/Up2.png>%s%s<img src=/static/Down2.png>%s<p><img src='%s'></p><p>%s</p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['ratingP'] or "0"), str(a['ratingN'] or "0"), anchorAdd, anchorFin, anchorSub, anchorFin, str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
+        return '''<h1 class='article_title'>%s</h1>
+                  <div class='article_rating'><p>%s<img src=/static/Up2.png>%s%s/%s%s<img src=/static/Down2.png>%s</p></div>
+                  <p><img src='%s'></p><p><iframe src=%s></iframe></p><p>%s</p><p>%s</p>'''% (str(a['title']),
+                                                                        anchorAdd,
+                                                                        anchorFin,
+                                                                        str(a['ratingP'] or "0"),
+                                                                        str(a['ratingN'] or "0"),
+                                                                        anchorSub, anchorFin,
+                                                                        str(a['img_url']),
+                                                                        str(a['video_url']),
+                                                                        str(a['body']),
+                                                                        str(a['score']))
 
 #Defines the function that will fetch the details of the user articles from the database
 def getUserArticleDetails(ArticleID):
@@ -295,7 +306,19 @@ def getUserArticleDetails(ArticleID):
             anchorAdd = "<A href=/UserReviews/AddVote/%s/%s>" % (ArticleID, getUsernameBySecret(request.cookies.get('secretNum')))
             anchorSub = "<A href=/UserReviews/SubVote/%s/%s>" % (ArticleID, getUsernameBySecret(request.cookies.get('secretNum')))
             anchorFin = "</A>"
-        return "<h1>%s</h1><p>%s/%s</p>%s<img src=/static/Up2.png>%s%s<img src=/static/Down2.png>%s<p><img src='%s'></p><p>%s</p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['ratingP'] or "0"), str(a['ratingN'] or "0"), anchorAdd, anchorFin, anchorSub, anchorFin, str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
+        return '''<h1 class='article_title'>%s</h1>
+                <div class='article_rating'><p>%s<img src=/static/Up2.png>%s%s/%s%s<img src=/static/Down2.png>%s</p></div>
+                <p><img src='%s'></p><p><iframe src=%s></iframe></p><p>%s</p><p>%s</p>''' % (str(a['title']),
+                                                                       anchorAdd,
+                                                                       anchorFin,
+                                                                       str(a['ratingP'] or "0"),
+                                                                       str(a['ratingN'] or "0"),
+                                                                       anchorSub,
+                                                                       anchorFin,
+                                                                       str(a['img_url']),
+                                                                       str(a['video_url']),
+                                                                       str(a['body']),
+                                                                       str(a['score']))
 
 #Defines the function that will validate the details entered by a user when they are creating an article
 def checkCreate(title, score, body, image, video):
