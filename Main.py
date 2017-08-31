@@ -16,7 +16,7 @@ app = Flask(__name__)
 def createDatabase():
     try:
         #Trie to connect to the database
-        connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+        connection = databaseConnect()
     except:
         #If it can't then it tries to create a new database in its place 
         try:
@@ -54,6 +54,9 @@ def createDatabase():
             print(e)
             sys.exit(-1)
 
+def databaseConnect():
+    return mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+
 #Sets up the list of links that will be on the bar at the top
 linkList = [["/","Home"],
             ["Articles","Articles"],
@@ -87,7 +90,7 @@ def headBar(pageTitle):
 #Defines the function that checks the login details of a user against what is in the database
 def checkLogin(username, password):
     #Connects to the GameReview database
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     query = ("select username from UserDetails where username = %s and password = %s")
     cursor = connection.cursor()
     #Searches for the username and password
@@ -109,7 +112,7 @@ def secretNumber():
 #Defines the function that updates the user's cookie as they change screens
 def updateUserCookie(username, secretNumber):
     #Connects to the GameReview database
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     query = ("update UserDetails set cookie = %s where username = %s")
     cursor = connection.cursor()
     #Searches for the cookie in the database
@@ -121,7 +124,7 @@ def updateUserCookie(username, secretNumber):
 #Defines the function that will determine which user is logged in by looking at their cookie
 def getUserBySecret(secretNumber):
     #Connects to the database
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     query = ('select username from UserDetails where cookie = "%s"' % (secretNumber))
     cursor = connection.cursor()
     cursor.execute(query)
@@ -132,7 +135,7 @@ def getUserBySecret(secretNumber):
 
 def getUsernameBySecret(secretNumber):
     #Connects to the database
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     query = ('select username from UserDetails where cookie = "%s"' % (secretNumber))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
@@ -143,7 +146,7 @@ def getUsernameBySecret(secretNumber):
 
 def getMailBySecret(secretNumber):
     #Connects to the database
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     query = ('select email from UserDetails where cookie = "%s"' % (secretNumber))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
@@ -155,7 +158,7 @@ def getMailBySecret(secretNumber):
 #Defines the function that will log the user out
 def logUserOut(secretNumber):
     #Connects to the database
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     query = ('update UserDetails set cookie = "" where cookie = "%s"' % (secretNumber))
     cursor = connection.cursor()
     cursor.execute(query)
@@ -165,7 +168,7 @@ def logUserOut(secretNumber):
 #Defines the function that will check if entered details for creating the account are already in the database
 def loginExists(username):
     #Connects to the database
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     query = ('select username from UserDetails where username = "%s"' % (username))
     cursor = connection.cursor()
     cursor.execute(query)
@@ -177,7 +180,7 @@ def loginExists(username):
 #Defines the function that will store new accounts on the database
 def storeAccount(username, password, email):
     #connects to the database
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     query = ("insert into UserDetails (username, password, email) values (%s, %s, %s)")
     cursor = connection.cursor()
     #Commits the new information to the database, encrypting the password in the process
@@ -214,7 +217,7 @@ def quickSort(data,orderBy):
 def getArticles(genre, orderBy):
     returnHTML = ""
     #connects to the database
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     whereStatement = ""
     #If the user has filtered to a specific genre then only articles with that genre value are displayed
     if genre != None and genre != 0:
@@ -238,7 +241,7 @@ def getArticles(genre, orderBy):
 def getUserArticles(genre, orderBy):
     returnHTML = ""
     #Connects to the database
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     whereStatement = ""
     #If the user has filtered to a specific genre then only articles with that genre value are displayed
     if genre != None and genre != 0:
@@ -261,7 +264,7 @@ def getUserArticles(genre, orderBy):
 #Defines the function that will fetch the details of the articles from the database
 def getArticleDetails(ArticleID):
     #Connects to the database
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     query = ("select ArticleID, title, img_url, video_url, body, score, (select sum(rating) from articlerating where ArticleID = '%s' and rating > 0) as ratingP, (select sum(rating) from articlerating where ArticleID = '%s' and rating < 0) as ratingN from articles where ArticleID = '%s'" % (ArticleID, ArticleID, ArticleID))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
@@ -283,7 +286,7 @@ def getArticleDetails(ArticleID):
 #Defines the function that will fetch the details of the user articles from the database
 def getUserArticleDetails(ArticleID):
     #Connects to the database
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     query = ("select ArticleID, title, rating, img_url, video_url, body, score from UserArticles where ArticleID = '%s'" % (ArticleID))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
@@ -329,7 +332,7 @@ def checkCreate(title, score, body, image, video):
 #Defines the function that will create new reviews
 def createReview(title, score, body, image, video, genre):
     #Connects to the database
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     query = ("insert into UserArticles (title, img_url, video_url, body, score, genre, rating) values (%s, %s, %s, %s, %s, %s, '0')")
     cursor = connection.cursor()
     #Inputs the new title, image, video, body, score and genre
@@ -342,7 +345,7 @@ def createReview(title, score, body, image, video, genre):
 def getUpcoming():
     returnHTML = "<table><tr><td>Date</td><td>Title</td><td>Platforms</td></tr>"
     upcomingFound = False
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     query = ("select title, platforms, date from UpcomingReleases")
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
@@ -438,7 +441,7 @@ def userLoggedIn():
 
 def changeVote(username, articleID, changeValue):
     #make sure articlerating record exists for this username and articleID
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     query = ('select username from articlerating where username = "%s" and ArticleID = "%s"' % (username, articleID))
     cursor = connection.cursor()
     cursor.execute(query)
@@ -466,7 +469,7 @@ def main():
     #Displays the bar of page links defined earlier
     global linkList
     #Connects to the database
-    connection = mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
+    connection = databaseConnect()
     loginHTML = ""
     #Checks if the user's cookie exists
     if 'secretNum' in request.cookies:
