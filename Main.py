@@ -268,12 +268,8 @@ def getArticleDetails(ArticleID):
     query = ("select ArticleID, title, img_url, video_url, body, score, (select sum(rating) from articlerating where ArticleID = '%s' and rating > 0) as ratingP, (select sum(rating) from articlerating where ArticleID = '%s' and rating < 0) as ratingN from articles where ArticleID = '%s'" % (ArticleID, ArticleID, ArticleID))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
-#    posRating = (str(a['ratingP']))
-#    negRating = (str(a['ratingN']))
     #Uses a acursor to fetch the data and place it in this format
     for a in cursor:
-#        if negRating == "None":
-#            negRating = "0"
         anchorAdd = ""
         anchorSub = ""
         anchorFin = ""
@@ -287,12 +283,19 @@ def getArticleDetails(ArticleID):
 def getUserArticleDetails(ArticleID):
     #Connects to the database
     connection = databaseConnect()
-    query = ("select ArticleID, title, rating, img_url, video_url, body, score from UserArticles where ArticleID = '%s'" % (ArticleID))
+    query = ("select ArticleID, title, rating, img_url, video_url, body, score, (select sum(rating) from userarticlerating where ArticleID = '%s' and rating > 0) as ratingP, (select sum(rating) from userarticlerating where ArticleID = '%s' and rating < 0) as ratingN from UserArticles where ArticleID = '%s'" % (ArticleID, ArticleID, ArticleID))
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     #Uses a acursor to fetch the data and place it in this format
     for a in cursor:
-        return "<h1>%s</h1><p>%s</p><img src='%s'><p><iframe width='420' height='315' src='%s'></iframe></p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['rating']), str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
+        anchorAdd = ""
+        anchorSub = ""
+        anchorFin = ""
+        if userLoggedIn():
+            anchorAdd = "<A href=/UserReviews/AddVote/%s/%s>" % (ArticleID, getUsernameBySecret(request.cookies.get('secretNum')))
+            anchorSub = "<A href=/UserReviews/SubVote/%s/%s>" % (ArticleID, getUsernameBySecret(request.cookies.get('secretNum')))
+            anchorFin = "</A>"
+        return "<h1>%s</h1><p>%s/%s</p>%s<img src=/static/Up2.png>%s%s<img src=/static/Down2.png>%s<p><img src='%s'></p><p>%s</p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['ratingP'] or "0"), str(a['ratingN'] or "0"), anchorAdd, anchorFin, anchorSub, anchorFin, str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
 
 #Defines the function that will validate the details entered by a user when they are creating an article
 def checkCreate(title, score, body, image, video):
@@ -462,6 +465,29 @@ def changeVote(username, articleID, changeValue):
     cursor = connection.cursor()
     cursor.execute(query)
 
+def userChangeVote(username, articleID, changeValue):
+    #make sure articlerating record exists for this username and articleID
+    connection = databaseConnect()
+    query = ('select username from userarticlerating where username = "%s" and ArticleID = "%s"' % (username, articleID))
+    cursor = connection.cursor()
+    cursor.execute(query)
+    cursor.fetchall()
+    if cursor.rowcount < 1:
+        #If not create one with a 0 rating
+        query = ("insert into userarticlerating (username, ArticleID, rating) values (%s, %s, 0)")
+        cursor = connection.cursor()
+        cursor.execute(query,(username, articleID))
+        query = ("commit")
+        cursor = connection.cursor()
+        cursor.execute(query)
+    #update articlerating with changed value
+    query = ('update userarticlerating set rating = "%s" where username = "%s" and ArticleID = "%s"' % (changeValue, username, articleID))
+    cursor = connection.cursor()
+    cursor.execute(query)
+    query = ("commit")
+    cursor = connection.cursor()
+    cursor.execute(query)
+
 #Sets this paige to  be the default  
 @app.route("/")
 #Creates the main page of the website
@@ -622,6 +648,22 @@ def createUserReviews():
     </body> </html>
     ''' % (genreList(False), errorMessage)
     return pageContent
+
+@app.route("/UserReviews/AddVote/<articleID>/<username>", methods = ['GET'])
+def userVoteAdd(articleID, username):
+    global linkList
+    if not userLoggedIn():
+        return redirect(url_for('main'))
+    userChangeVote(username, articleID, 1)
+    return redirect(url_for('UserArticleDetails',articleID=articleID))
+
+@app.route("/UserReviews/SubVote/<articleID>/<username>", methods = ['GET'])
+def userVoteSub(articleID, username):
+    global linkList
+    if not userLoggedIn():
+        return redirect(url_for('main'))
+    userChangeVote(username, articleID, -1)
+    return redirect(url_for('UserArticleDetails',articleID=articleID))
 
 #Sets the page to display when /UserReviews is at the end of the URL
 @app.route("/UserReviews", methods = ['GET', 'POST'])
