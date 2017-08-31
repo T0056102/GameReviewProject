@@ -278,7 +278,7 @@ def getArticleDetails(ArticleID):
             anchorAdd = "<A href=/Articles/AddVote/%s/%s>" % (ArticleID, getUsernameBySecret(request.cookies.get('secretNum')))
             anchorSub = "<A href=/Articles/SubVote/%s/%s>" % (ArticleID, getUsernameBySecret(request.cookies.get('secretNum')))
             anchorFin = "</A>"
-        return "<h1>%s</h1><p>%s/%s</p>%s<img src=/static/Up2.png>%s%s<img src=/static/Down2.png>%s<p><img src='%s'></p><p>%s</p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['ratingP']), str(a['ratingN']), anchorAdd, anchorFin, anchorSub, anchorFin, str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
+        return "<h1>%s</h1><p>%s/%s</p>%s<img src=/static/Up2.png>%s%s<img src=/static/Down2.png>%s<p><img src='%s'></p><p>%s</p><p>%s</p><p>%s</p>" % (str(a['title']), str(a['ratingP'] or "0"), str(a['ratingN'] or "0"), anchorAdd, anchorFin, anchorSub, anchorFin, str(a['img_url']), str(a['video_url']), str(a['body']), str(a['score']))
 
 #Defines the function that will fetch the details of the user articles from the database
 def getUserArticleDetails(ArticleID):
