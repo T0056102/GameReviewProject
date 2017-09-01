@@ -62,3 +62,8 @@ li a:hover { background-color: #BB8FCE; }
   right: 10px;
 }
 
+.article_body {
+  word-wrap: break-word;
+  width: 1000px  
+}
+

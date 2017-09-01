@@ -45,6 +45,14 @@ def createDatabase():
             query = ("create table UpcomingReleases (title varchar(256), platforms varchar(256), date varchar(8));")
             cursor = connection.cursor()
             cursor.execute(query)
+            #Creates the table that stores user votes on articles
+            query = ("create table articlerating (username varchar(32), ArticleID mediumint(9), rating decimal(2,0), PRIMARY KEY (username, ArticleID));")
+            cursor = connection.cursor()
+            cursor.execute(query)
+            #Creates the table that stores user votes on user articles
+            query = ("create table userarticlerating (username varchar(32), ArticleID mediumint(9), rating decimal(2,0), PRIMARY KEY (username, ArticleID));")
+            cursor = connection.cursor()
+            cursor.execute(query)
             #Commits the tables to the database
             query = ("commit;")
             cursor = connection.cursor()
@@ -54,6 +62,7 @@ def createDatabase():
             print(e)
             sys.exit(-1)
 
+#Defines the function which connects to the database so that if I want to change the password of the database I only have to change it here and in the database creation function
 def databaseConnect():
     return mysql.connector.connect(user = "root", password = "Password1!", database = "GameReview")
 
@@ -129,10 +138,12 @@ def getUserBySecret(secretNumber):
     cursor = connection.cursor()
     cursor.execute(query)
     cursor.fetchall()
+    #If there is a record with that secret number the fact that they are logged in will be set to True
     if cursor.rowcount == 1:
         return True
     return False
 
+#Defines the function that will find the logged in user's username
 def getUsernameBySecret(secretNumber):
     #Connects to the database
     connection = databaseConnect()
@@ -140,10 +151,12 @@ def getUsernameBySecret(secretNumber):
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     retUsername=''
+    #Searches through the table for the username and returns it 
     for a in cursor:
         retUsername=a['username']
     return retUsername
 
+#Defines the function that will find the logged in user's email address from the database
 def getMailBySecret(secretNumber):
     #Connects to the database
     connection = databaseConnect()
@@ -151,6 +164,7 @@ def getMailBySecret(secretNumber):
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query)
     retMail=''
+    #Searches theough the database for the user's email address and returns it
     for a in cursor:
         retMail=a['email']
     return retMail
@@ -165,6 +179,7 @@ def logUserOut(secretNumber):
     query = ("commit")
     cursor = connection.cursor()
     cursor.execute(query)
+    
 #Defines the function that will check if entered details for creating the account are already in the database
 def loginExists(username):
     #Connects to the database
@@ -173,6 +188,7 @@ def loginExists(username):
     cursor = connection.cursor()
     cursor.execute(query)
     cursor.fetchall()
+    #If there is more than 0 records with that username then it sets this fact to be True
     if cursor.rowcount > 0:
         return True
     return False
@@ -198,14 +214,17 @@ def quickSort(data,orderBy):
     #Finds the midpoint of the list
     midpoint = len(data)/2
     a = 0
+    #Loops until there is only one item left in the list
     while a < len(data):
         if a == midpoint:
             pass
+        #Splits the list into values lower and higher than the pivot
         elif (orderBy=="0" and data[a][0] < data[midpoint][0]) or (orderBy=="1" and data[a][0] > data[midpoint][0]):
             lowerList.append(data[a])
         else:
             higherList.append(data[a])
         a += 1
+    #Only continues to sort a list if the lists are not empty
     if len(lowerList) > 1:
         lowerList = quickSort(lowerList,orderBy)
     if len(higherList) > 1:
@@ -280,7 +299,7 @@ def getArticleDetails(ArticleID):
         return '''<h1 class='article_title'>%s</h1>
                   <div class='article_rating'><p>%s<img src=/static/Up2.png>%s%s/%s%s<img src=/static/Down2.png>%s</p></div>
                   <div class='article_media'><p><img src='%s'></p><p><iframe src=%s></iframe></p></div>
-                  <p>%s</p><p>%s</p>'''% (str(a['title']),
+                  <p>%s</p><p class='article_body'>%s</p>'''% (str(a['title']),
                                                                         anchorAdd,
                                                                         anchorFin,
                                                                         str(a['ratingP'] or "0"),
@@ -310,7 +329,7 @@ def getUserArticleDetails(ArticleID):
         return '''<h1 class='article_title'>%s</h1>
                 <div class='article_rating'><p>%s<img src=/static/Up2.png>%s%s/%s%s<img src=/static/Down2.png>%s</p></div>
                 <div class='article_media'><p><img src='%s'></p><p><iframe src=%s></iframe></p></div>
-                <p>%s</p><p>%s</p>''' % (str(a['title']),
+                <p>%s</p><p class='article_body'>%s</p>''' % (str(a['title']),
                                                                        anchorAdd,
                                                                        anchorFin,
                                                                        str(a['ratingP'] or "0"),
@@ -448,41 +467,48 @@ def decryptXOR(s, key="\x101Z"):
 #Defines the function that will send an email to the administrator
 def sendEmail(mail_from, mail_message):
     msg = message.Message()
+    #Sets the header of the message to be who sent it
     msg.add_header('from',mail_from)
+    #Sends the message to this admin email address
     msg.add_header('to','fenrir.reviews@gmail.com')
+    #Sets the subject to be who the mail was from
     msg.add_header('subject', mail_from)
     msg.set_payload(mail_message)
-    
+
+    #Connects to the SMTP server to send the message
     s = smtplib.SMTP_SSL('smtp.gmail.com')
     s.login("fenrir.reviews@gmail.com", base64.b64decode('UGE1NXdvcmQxIQ=='))
     s.sendmail(mail_from, ["fenrir.reviews@gmail.com"], msg.as_string())
     s.quit()
     return 
 
+#Checks if the user is logged in
 def userLoggedIn():
     loggedIn = False
     if 'secretNum' in request.cookies:
         secretNum = request.cookies.get('secretNum')
+        #If the getUserBySecret returns as True then the fact the user is logged in is also set to True
         if getUserBySecret(secretNum) == True:
             loggedIn = True
     return loggedIn
 
+#Defines the function that changes a user's vote on an article
 def changeVote(username, articleID, changeValue):
-    #make sure articlerating record exists for this username and articleID
+    #Makes sure articlerating record exists for this username and articleID
     connection = databaseConnect()
     query = ('select username from articlerating where username = "%s" and ArticleID = "%s"' % (username, articleID))
     cursor = connection.cursor()
     cursor.execute(query)
     cursor.fetchall()
     if cursor.rowcount < 1:
-        #If not create one with a 0 rating
+        #If not it creates one with a rating of 0
         query = ("insert into articlerating (username, ArticleID, rating) values (%s, %s, 0)")
         cursor = connection.cursor()
         cursor.execute(query,(username, articleID))
         query = ("commit")
         cursor = connection.cursor()
         cursor.execute(query)
-    #update articlerating with changed value
+    #Updates the articlerating table with the changed value
     query = ('update articlerating set rating = "%s" where username = "%s" and ArticleID = "%s"' % (changeValue, username, articleID))
     cursor = connection.cursor()
     cursor.execute(query)
@@ -490,22 +516,23 @@ def changeVote(username, articleID, changeValue):
     cursor = connection.cursor()
     cursor.execute(query)
 
+#Defines the function that changes a user's vote on a user article
 def userChangeVote(username, articleID, changeValue):
-    #make sure articlerating record exists for this username and articleID
+    #Makes sure articlerating record exists for this username and articleID
     connection = databaseConnect()
     query = ('select username from userarticlerating where username = "%s" and ArticleID = "%s"' % (username, articleID))
     cursor = connection.cursor()
     cursor.execute(query)
     cursor.fetchall()
     if cursor.rowcount < 1:
-        #If not create one with a 0 rating
+        #If not it creates one with a rating of 0
         query = ("insert into userarticlerating (username, ArticleID, rating) values (%s, %s, 0)")
         cursor = connection.cursor()
         cursor.execute(query,(username, articleID))
         query = ("commit")
         cursor = connection.cursor()
         cursor.execute(query)
-    #update articlerating with changed value
+    #Updates the articlerating table with the changed value
     query = ('update userarticlerating set rating = "%s" where username = "%s" and ArticleID = "%s"' % (changeValue, username, articleID))
     cursor = connection.cursor()
     cursor.execute(query)
@@ -557,19 +584,27 @@ def articleDetails(articleID):
     pageContent +='''</ul> </nav> <p>%s</p>''' % (articleDetails)
     return pageContent
 
+#Sets the page to display when /Articles/AddVote/<articleID>/<username> is at the end to the URL
 @app.route("/Articles/AddVote/<articleID>/<username>", methods = ['GET'])
+#Creates the page that the user will be redirected to after they like an article
 def voteAdd(articleID, username):
     global linkList
+    #If the user is not logged in they are redirected to the main page
     if not userLoggedIn():
         return redirect(url_for('main'))
+    #Changes the vote in the database
     changeVote(username, articleID, 1)
     return redirect(url_for('articleDetails',articleID=articleID))
 
+#Sets the page to display when /Articles/SubVote/<articleID>/<username> is at the end to the URL
 @app.route("/Articles/SubVote/<articleID>/<username>", methods = ['GET'])
+#Creates the page that the user will be redirected to after they dislike an article
 def voteSub(articleID, username):
     global linkList
+    #If the user is not logged in they are redirected to the main page
     if not userLoggedIn():
         return redirect(url_for('main'))
+    #Changes the vote in the database
     changeVote(username, articleID, -1)
     return redirect(url_for('articleDetails',articleID=articleID))
     
@@ -674,19 +709,27 @@ def createUserReviews():
     ''' % (genreList(False), errorMessage)
     return pageContent
 
+#Sets the page to display when /UserReviews/AddVote/<articleID>/<username> is at the end to the URL
 @app.route("/UserReviews/AddVote/<articleID>/<username>", methods = ['GET'])
+#Creates the page that the user will be redirected to after they like a user article
 def userVoteAdd(articleID, username):
     global linkList
+    #If the user is not logged in they are redirected to the main page
     if not userLoggedIn():
         return redirect(url_for('main'))
+    #Changes the vote in the database
     userChangeVote(username, articleID, 1)
     return redirect(url_for('UserArticleDetails',articleID=articleID))
 
+#Sets the page to display when /UserReviews/SubVote/<articleID>/<username> is at the end to the URL
 @app.route("/UserReviews/SubVote/<articleID>/<username>", methods = ['GET'])
+#Creates the page that the user will be redirected to after they dislike a user article
 def userVoteSub(articleID, username):
     global linkList
+    #If the user is not logged in they are redirected to the main page
     if not userLoggedIn():
         return redirect(url_for('main'))
+    #Changes the vote in the database
     userChangeVote(username, articleID, -1)
     return redirect(url_for('UserArticleDetails',articleID=articleID))
 
@@ -948,7 +991,8 @@ def createAccount():
       </div>
     </form> </body> </html>''' %(falseCreate)
     return pageContent
-    
+
+#Makes the site always run from the same port  
 if __name__ == "__main__":
     run_port=5000
     if len(sys.argv) > 1:
