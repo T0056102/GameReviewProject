@@ -15,7 +15,7 @@ app = Flask(__name__)
 @app.before_first_request
 def createDatabase():
     try:
-        #Trie to connect to the database
+        #Try to connect to the database
         connection = databaseConnect()
     except:
         #If it can't then it tries to create a new database in its place 
@@ -68,12 +68,13 @@ def databaseConnect():
 
 #Sets up the list of links that will be on the bar at the top
 linkList = [["/","Home"],
-            ["Articles","Articles"],
-            ["UserReviews","User Reviews"],
-            ["UpcomingReleases","Upcoming Releases"],
-            ["Contact","Contact"],
-            ["Login","Login"]#Left is the page that will be linked to, right is the label of the button
+            ["/Articles","Articles"],
+            ["/UserReviews","User Reviews"],
+            ["/UpcomingReleases","Upcoming Releases"],
+            ["/Contact","Contact"],
+            ["/Login","Login"]
            ]
+#Left is the page that will be linked to, right is the label of the button
 
 #Defines the function that will format the task bar at the top of the screen
 def commonHeader():
@@ -921,10 +922,14 @@ def createAccount():
         else:
             if request.form['password1'] != request.form['password2']:
                 falseCreate = "passwords do not match"
-            #Sores the new record in the database and redirects to the login page
             else:
-                storeAccount(request.form['username'], request.form['password1'], request.form['email'])
-                return(redirect(url_for("login")))
+                #If the username is to long then the user is told to try again
+                if len(request.form['username']) > 32:
+                    falseCreate = "username is too long, max characters is 32"
+                #Sores the new record in the database and redirects to the login page
+                else:
+                    storeAccount(request.form['username'], request.form['password1'], request.form['email'])
+                    return(redirect(url_for("login")))
     pageContent = commonHeader()
     #Sets the title at the top of the page to be "Create Account"
     pageContent += headBar("Create Account")
