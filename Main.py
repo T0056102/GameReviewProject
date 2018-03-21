@@ -369,7 +369,7 @@ def checkCreate(title, score, body, image, video):
         return "you must enter an image URL"
     #If the image url is longer than 256 characters it is considered false and the user is told the range that it must be in
     if len(image) >256:
-        return "Image URL must beat most 256 characters long"
+        return "Image URL must be at most 256 characters long"
     #If the image url box is empty the user is told that they must enter an video url
     if video == "":
         return "You must enter a video URL"
